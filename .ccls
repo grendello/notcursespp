@@ -1,0 +1,7 @@
+clang
+%cpp -std=c++17
+-DHAVE_CONFIG_H
+-D_GNU_SOURCE
+-I_builds/include
+-Iinclude
+

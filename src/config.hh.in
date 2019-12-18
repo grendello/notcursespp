@@ -1,0 +1,12 @@
+// Dear Emacs, this is a -*- C++ -*- header
+#ifndef __CONFIG_HH
+#define __CONFIG_HH
+
+#cmakedefine PACKAGE_NAME "@PACKAGE_NAME@"
+#cmakedefine PACKAGE_VERSION @PACKAGE_VERSION@
+#define PACKAGE_VERSION_MAJOR ${NCPP_VERSION_MAJOR}
+#define PACKAGE_VERSION_MINOR ${NCPP_VERSION_MINOR}
+#define PACKAGE_VERSION_MICRO ${NCPP_VERSION_MICRO}
+#cmakedefine PACKAGE_STRING "@PACKAGE_STRING@"
+
+#endif
