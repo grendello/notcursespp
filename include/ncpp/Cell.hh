@@ -20,6 +20,11 @@ namespace ncpp
 			return &_cell;
 		}
 
+		operator cell const* () const noexcept
+		{
+			return &_cell;
+		}
+
 	protected:
 		cell* get_cell () noexcept
 		{

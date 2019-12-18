@@ -1,6 +1,7 @@
 #ifndef __NCPP_PLANE_HH
 #define __NCPP_PLANE_HH
 
+#include <cstdarg>
 #include <map>
 #include <mutex>
 #include <notcurses.h>
@@ -68,37 +69,119 @@ namespace ncpp
 
 		bool move (int y, int x) const noexcept
 		{
-			return ncplane_move_yx (plane, y, x) == 0;
+			return ncplane_move_yx (plane, y, x) != -1;
 		}
 
 		bool move_top () const noexcept
 		{
-			return ncplane_move_top (plane) == 0;
+			return ncplane_move_top (plane) != -1;
 		}
 
 		bool move_bottom () const noexcept
 		{
-			return ncplane_move_bottom (plane) == 0;
+			return ncplane_move_bottom (plane) != -1;
 		}
 
 		bool move_below (Plane &below) const noexcept
 		{
-			return ncplane_move_below (plane, below.plane) == 0;
+			return ncplane_move_below (plane, below.plane) != -1;
 		}
 
 		bool move_above (Plane &above) const noexcept
 		{
-			return ncplane_move_above (plane, above.plane) == 0;
+			return ncplane_move_above (plane, above.plane) != -1;
 		}
 
 		bool cursor_move_yx (int y, int x) const noexcept
 		{
-			return ncplane_cursor_move_yx (plane, y, x) == 0;
+			return ncplane_cursor_move_yx (plane, y, x) != -1;
 		}
 
 		void get_cursor_yx (int *y, int *x) const noexcept
 		{
 			ncplane_cursor_yx (plane, y, x);
+		}
+
+		bool putc (const Cell &c) const noexcept
+		{
+			return ncplane_putc (plane, c) != -1;
+		}
+
+		bool putc (int y, int x, const Cell &c) const noexcept
+		{
+			return ncplane_putc_yx (plane, y, x, c) != -1;
+		}
+
+		bool putc (char c) const noexcept
+		{
+			return ncplane_putsimple (plane, c) != -1;
+		}
+
+		bool putc (int y, int x, char c) const noexcept
+		{
+			return ncplane_putsimple_yx (plane, y, x, c) != -1;
+		}
+
+		bool putc (const char *gclust, uint32_t attr, uint64_t channels, int *sbytes) const noexcept
+		{
+			return ncplane_putegc (plane, gclust, attr, channels, sbytes) != -1;
+		}
+
+		bool putc (int y, int x, const char *gclust, uint32_t attr, uint64_t channels, int *sbytes) const noexcept
+		{
+			return ncplane_putegc_yx (plane, y, x, gclust, attr, channels, sbytes) != -1;
+		}
+
+		bool putc (const wchar_t *gclust, uint32_t attr, uint64_t channels, int *sbytes) const noexcept
+		{
+			return ncplane_putwegc (plane, gclust, attr, channels, sbytes) != -1;
+		}
+
+		bool putc (int y, int x, const wchar_t *gclust, uint32_t attr, uint64_t channels, int *sbytes) const noexcept
+		{
+			return ncplane_putwegc_yx (plane, y, x, gclust, attr, channels, sbytes) != -1;
+		}
+
+		bool putstr (const char *gclustarr) const noexcept
+		{
+			return ncplane_putstr (plane, gclustarr) < 0;
+		}
+
+		bool putstr (int y, int x, const char *gclustarr) const noexcept
+		{
+			return ncplane_putstr_yx (plane, y, x, gclustarr) < 0;
+		}
+
+		bool putstr (const wchar_t *gclustarr) const noexcept
+		{
+			return ncplane_putwstr (plane, gclustarr) < 0;
+		}
+
+		bool putstr (int y, int x, const wchar_t *gclustarr) const noexcept
+		{
+			return ncplane_putwstr_yx (plane, y, x, gclustarr) < 0;
+		}
+
+		bool printf (const char* format, ...) const noexcept
+			__attribute__ ((format (printf, 2, 3)))
+		{
+			va_list va;
+
+			va_start(va, format);
+			int ret = ncplane_vprintf (plane, format, va);
+			va_end(va);
+
+			return ret >= 0;
+		}
+
+		bool vprintf (const char* format, va_list ap) const noexcept
+		{
+			return ncplane_vprintf (plane, format, ap) >= 0;
+		}
+
+		bool vprintf (int y, int x, const char* format, va_list ap) const noexcept
+		{
+			return ncplane_vprintf_yx (plane, y, x, format, ap) >= 0;
 		}
 
 		void styles_set (CellStyle styles) const noexcept
