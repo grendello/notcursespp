@@ -1,6 +1,7 @@
 set(NCPP_SOURCES
-  ncpp.cc
   NotCurses.cc
+  Plane.cc
+  Root.cc
   )
 
 add_library(

@@ -1,0 +1,72 @@
+#ifndef __NCPP_NCKEY_HH
+#define __NCPP_NCKEY_HH
+
+#include <cstdint>
+#include <notcurses.h>
+
+namespace ncpp
+{
+	enum class NCKey : uint32_t
+	{
+		Invalid	  = NCKEY_INVALID,
+        Resize	  = NCKEY_RESIZE,
+        Up		  = NCKEY_UP,
+        Right	  = NCKEY_RIGHT,
+        Down	  = NCKEY_DOWN,
+        Left	  = NCKEY_LEFT,
+        Ins		  = NCKEY_INS,
+        Del		  = NCKEY_DEL,
+        Backspace = NCKEY_BACKSPACE,
+        PgDown	  = NCKEY_PGDOWN,
+        PgUp	  = NCKEY_PGUP,
+        Home	  = NCKEY_HOME,
+        End		  = NCKEY_END,
+        F00		  = NCKEY_F00,
+        F01		  = NCKEY_F01,
+        F02		  = NCKEY_F02,
+        F03		  = NCKEY_F03,
+        F04		  = NCKEY_F04,
+        F05		  = NCKEY_F05,
+        F06		  = NCKEY_F06,
+        F07		  = NCKEY_F07,
+        F08		  = NCKEY_F08,
+        F09		  = NCKEY_F09,
+        F10		  = NCKEY_F10,
+        F11		  = NCKEY_F11,
+        F12		  = NCKEY_F12,
+        F13		  = NCKEY_F13,
+        F14		  = NCKEY_F14,
+        F15		  = NCKEY_F15,
+        F16		  = NCKEY_F16,
+        F17		  = NCKEY_F17,
+        F18		  = NCKEY_F18,
+        F19		  = NCKEY_F19,
+        F20		  = NCKEY_F20,
+        F21		  = NCKEY_F21,
+        F22		  = NCKEY_F22,
+        F23		  = NCKEY_F23,
+        F24		  = NCKEY_F24,
+        F25		  = NCKEY_F25,
+        F26		  = NCKEY_F26,
+        F27		  = NCKEY_F27,
+        F28		  = NCKEY_F28,
+        F29		  = NCKEY_F29,
+        F30		  = NCKEY_F30,
+        Enter	  = NCKEY_ENTER,
+        CLS		  = NCKEY_CLS,
+        DLeft	  = NCKEY_DLEFT,
+        DRight	  = NCKEY_DRIGHT,
+        ULeft	  = NCKEY_ULEFT,
+        URight	  = NCKEY_URIGHT,
+        Center	  = NCKEY_CENTER,
+        Begin	  = NCKEY_BEGIN,
+        Cancel	  = NCKEY_CANCEL,
+        Close	  = NCKEY_CLOSE,
+        Command	  = NCKEY_COMMAND,
+        Copy	  = NCKEY_COPY,
+        Exit	  = NCKEY_EXIT,
+        Print	  = NCKEY_PRINT,
+        Refresh	  = NCKEY_REFRESH,
+	};
+}
+#endif

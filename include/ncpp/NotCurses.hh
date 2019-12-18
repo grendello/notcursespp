@@ -2,21 +2,32 @@
 #define __NCPP_NOTCURSES_HH
 
 #include <cstdio>
+#include <ctime>
+#include <csignal>
 #include <atomic>
+#include <map>
+#include <mutex>
 
 #include <notcurses.h>
 
 #include "CellStyle.hh"
+#include "Plane.hh"
 #include "_helpers.hh"
+
+namespace std
+{
+	class mutex;
+}
 
 namespace ncpp
 {
-	extern notcurses_options default_notcurses_options;
-
 	class NCPP_API_EXPORT NotCurses
 	{
 	public:
-		NotCurses& get_instance () const noexcept
+		static notcurses_options default_notcurses_options;
+
+	public:
+		static NotCurses& get_instance () noexcept
 		{
 			return _instance;
 		}
@@ -58,6 +69,30 @@ namespace ncpp
 			return static_cast<CellStyle>(notcurses_supported_styles (nc));
 		}
 
+		wchar_t getc (const timespec *ts, sigset_t *sigmask) const noexcept
+		{
+			return notcurses_getc (nc, ts, sigmask);
+		}
+
+		wchar_t getc (bool blocking = false) const noexcept
+		{
+			if (blocking)
+				return notcurses_getc_blocking (nc);
+
+			return notcurses_getc_nblock (nc);
+		}
+
+		Plane* get_stdplane () noexcept
+		{
+			if (stdplane == nullptr) {
+				stdplane = new Plane (notcurses_stdplane (nc));
+			}
+
+			return stdplane;
+		}
+
+		Plane* get_top () noexcept;
+
 	protected:
 		NotCurses () noexcept
 		{}
@@ -66,7 +101,10 @@ namespace ncpp
 
 	private:
 		notcurses *nc;
+		Plane *stdplane = nullptr;
 		std::atomic_bool initialized;
+		std::map<ncplane*, Plane*> *top_planes = nullptr;
+		std::mutex top_planes_mutex;
 
 		static NotCurses _instance;
 	};
