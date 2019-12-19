@@ -173,7 +173,7 @@ pkg_check_modules(NOTCURSES REQUIRED notcurses>=0.9.0)
 include_directories(${NOTCURSES_INCLUDE_DIRS})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${NOTCURSES_CFLAGS} ${NOTCURSES_CFLAGS_OTHER}")
 
-add_subdirectory(src)
+add_subdirectory(src/lib)
 
 message(STATUS "")
 message(STATUS "Compiler: ${CMAKE_CXX_COMPILER}")
