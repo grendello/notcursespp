@@ -174,6 +174,7 @@ include_directories(${NOTCURSES_INCLUDE_DIRS})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${NOTCURSES_CFLAGS} ${NOTCURSES_CFLAGS_OTHER}")
 
 add_subdirectory(src/lib)
+add_subdirectory(src/poc)
 
 message(STATUS "")
 message(STATUS "Compiler: ${CMAKE_CXX_COMPILER}")

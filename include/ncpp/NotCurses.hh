@@ -36,7 +36,7 @@ namespace ncpp
 
 		bool init (FILE *fp = nullptr) noexcept
 		{
-			return init (default_notcurses_options, fp);
+			return init (default_notcurses_options, fp == nullptr ? stdout : fp);
 		}
 
 		notcurses* get_notcurses () const noexcept

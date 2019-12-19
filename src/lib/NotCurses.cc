@@ -26,7 +26,7 @@ NotCurses::~NotCurses () noexcept
 bool NotCurses::init (const notcurses_options &nc_opts, FILE *fp) noexcept
 {
 	if (!initialized) {
-		nc = notcurses_init(&nc_opts, fp);
+		nc = notcurses_init (&nc_opts, fp);
 		initialized = true;
 	}
 
