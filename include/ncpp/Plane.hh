@@ -10,6 +10,7 @@
 #include "Cell.hh"
 #include "CellStyle.hh"
 #include "NCAlign.hh"
+#include "NCBox.hh"
 
 namespace ncpp
 {
@@ -41,6 +42,16 @@ namespace ncpp
 
 			ncplane_destroy (plane);
 			unmap_plane (this);
+		}
+
+		operator ncplane* () noexcept
+		{
+			return plane;
+		}
+
+		operator ncplane const* () const noexcept
+		{
+			return plane;
 		}
 
 		bool resize (int keepy, int keepx, int keepleny, int keeplenx, int yoff, int xoff, int ylen, int xlen) const noexcept
@@ -185,6 +196,168 @@ namespace ncpp
 			return ret >= 0;
 		}
 
+		int hline (const Cell &c, int len) const noexcept
+		{
+			return ncplane_hline (plane, c, len);
+		}
+
+		int hline (const Cell &c, int len, uint64_t c1, uint64_t c2) const noexcept
+		{
+			return ncplane_hline_interp (plane, c, len, c1, c2);
+		}
+
+		int vline (const Cell &c, int len) const noexcept
+		{
+			return ncplane_vline (plane, c, len);
+		}
+
+		int vline (const Cell &c, int len, uint64_t c1, uint64_t c2) const noexcept
+		{
+			return ncplane_vline_interp (plane, c, len, c1, c2);
+		}
+
+		bool load_box (uint32_t attrs, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr,
+					   Cell &hl, Cell &vl, const char *gclusters) const noexcept
+		{
+			return cells_load_box (plane, attrs, channels, ul, ur, ll, lr, hl, vl, gclusters) != -1;
+		}
+
+		bool load_rounded_box (uint32_t attr, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr,
+							   Cell &hl, Cell &vl) const noexcept
+		{
+			return cells_rounded_box (plane, attr, channels, ul, ur, ll, lr, hl, vl) != -1;
+		}
+
+		bool load_double_box (uint32_t attr, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr,
+							  Cell &hl, Cell &vl) const noexcept
+		{
+			return cells_double_box (plane, attr, channels, ul, ur, ll, lr, hl, vl) != -1;
+		}
+
+		bool box (const Cell &ul, const Cell &ur, const Cell &ll, const Cell &lr,
+				  const Cell &hline, const Cell &vline, int ystop, int xstop,
+				  unsigned ctlword) const noexcept
+		{
+			return ncplane_box (plane, ul, ur, ll, lr, hline, vline, ystop, xstop, ctlword) != -1;
+		}
+
+		bool box_sized (const Cell &ul, const Cell &ur, const Cell &ll, const Cell &lr,
+						const Cell &hline, const Cell &vline, int ylen, int xlen,
+						unsigned ctlword) const noexcept
+		{
+			return ncplane_box_sized (plane, ul, ur, ll, lr, hline, vline, ylen, xlen, ctlword) != -1;
+		}
+
+		bool rounded_box (uint32_t attr, uint64_t channels, int ystop, int xstop, unsigned ctlword) const noexcept
+		{
+			return ncplane_rounded_box (plane, attr, channels, ystop, xstop, ctlword) != -1;
+		}
+
+		bool rounded_box_sized (uint32_t attr, uint64_t channels, int ylen, int xlen, unsigned ctlword) const noexcept
+		{
+			return ncplane_rounded_box_sized (plane, attr, channels, ylen, xlen, ctlword) != -1;
+		}
+
+		bool double_box (uint32_t attr, uint64_t channels, int ystop, int xstop, unsigned ctlword) const noexcept
+		{
+			return ncplane_double_box (plane, attr, channels, ystop, xstop, ctlword) != -1;
+		}
+
+		bool double_box_sized (uint32_t attr, uint64_t channels, int ylen, int xlen, unsigned ctlword) const noexcept
+		{
+			return ncplane_double_box_sized (plane, attr, channels, ylen, xlen, ctlword) != -1;
+		}
+
+		uint64_t get_channels () const noexcept
+		{
+			return ncplane_get_channels (plane);
+		}
+
+		uint32_t get_attr () const noexcept
+		{
+			return ncplane_get_attr (plane);
+		}
+
+		unsigned get_bchannel () const noexcept
+		{
+			return ncplane_get_bchannel (plane);
+		}
+
+		unsigned get_fchannel () const noexcept
+		{
+			return ncplane_get_fchannel (plane);
+		}
+
+		unsigned get_fg () const noexcept
+		{
+			return ncplane_get_fg (plane);
+		}
+
+		unsigned get_bg () const noexcept
+		{
+			return ncplane_get_bg (plane);
+		}
+
+		unsigned get_fg_alpha () const noexcept
+		{
+			return ncplane_get_fg_alpha (plane);
+		}
+
+		bool set_fg_alpha (int alpha) const noexcept
+		{
+			return ncplane_set_fg_alpha (plane, alpha) != -1;
+		}
+
+		unsigned get_bg_alpha () const noexcept
+		{
+			return ncplane_get_bg_alpha (plane);
+		}
+
+		bool set_bg_alpha (int alpha) const noexcept
+		{
+			return ncplane_set_bg_alpha (plane, alpha) != -1;
+		}
+
+		unsigned get_fg_rgb (unsigned *r, unsigned *g, unsigned *b) const noexcept
+		{
+			return ncplane_get_fg_rgb (plane, r, g, b);
+		}
+
+		bool set_fg_rgb (unsigned r, unsigned g, unsigned b) const noexcept
+		{
+			return ncplane_set_fg_rgb (plane, r, g, b) != -1;
+		}
+
+		void set_fg (uint32_t channel) const noexcept
+		{
+			ncplane_set_fg (plane, channel);
+		}
+
+		void set_fg_default () const noexcept
+		{
+			ncplane_set_fg_default (plane);
+		}
+
+		unsigned get_bg_rgb (unsigned *r, unsigned *g, unsigned *b) const noexcept
+		{
+			return ncplane_get_bg_rgb (plane, r, g, b);
+		}
+
+		bool set_bg_rgb (unsigned r, unsigned g, unsigned b) const noexcept
+		{
+			return ncplane_set_bg_rgb (plane, r, g, b) != -1;
+		}
+
+		void set_bg (uint32_t channel) const noexcept
+		{
+			ncplane_set_bg (plane, channel);
+		}
+
+		void set_bg_default () const noexcept
+		{
+			ncplane_set_bg_default (plane);
+		}
+
 		bool vprintf (const char* format, va_list ap) const noexcept
 		{
 			return ncplane_vprintf (plane, format, ap) >= 0;
@@ -255,6 +428,34 @@ namespace ncpp
 		T* get_userptr () const noexcept
 		{
 			return static_cast<T*>(get_userptr ());
+		}
+
+		// Some Cell APIs go here since they act on individual panels even though it may seem weird at points (e.g.
+		// release)
+
+		int load (Cell &cell, const char *gcluster) const noexcept
+		{
+			return cell_load (plane, cell, gcluster);
+		}
+
+		bool load (Cell &cell, char ch) const noexcept
+		{
+			return cell_load_simple (plane, cell, ch) != -1;
+		}
+
+		int prime (Cell &cell, const char *gcluster, uint32_t attr, uint64_t channels) const noexcept
+		{
+			return cell_prime (plane, cell, gcluster, attr, channels);
+		}
+
+		void release (Cell &cell) const noexcept
+		{
+			cell_release (plane, cell);
+		}
+
+		const char* get_extended_gcluster (Cell &cell) const noexcept
+		{
+			return cell_extended_gcluster (plane, cell);
 		}
 
 	protected:
