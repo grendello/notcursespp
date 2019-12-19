@@ -8,6 +8,7 @@
 
 #include "Root.hh"
 #include "Cell.hh"
+#include "Visual.hh"
 #include "CellStyle.hh"
 #include "NCAlign.hh"
 #include "NCBox.hh"
@@ -52,6 +53,11 @@ namespace ncpp
 		operator ncplane const* () const noexcept
 		{
 			return plane;
+		}
+
+		operator bool () noexcept
+		{
+			return plane != nullptr;
 		}
 
 		bool resize (int keepy, int keepx, int keepleny, int keeplenx, int yoff, int xoff, int ylen, int xlen) const noexcept
@@ -428,6 +434,11 @@ namespace ncpp
 		T* get_userptr () const noexcept
 		{
 			return static_cast<T*>(get_userptr ());
+		}
+
+		Visual* visual_open (const char *file, int *averr) const noexcept
+		{
+			return new Visual (plane, file, averr);
 		}
 
 		// Some Cell APIs go here since they act on individual panels even though it may seem weird at points (e.g.
