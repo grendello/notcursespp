@@ -9,6 +9,7 @@
 #include "Root.hh"
 #include "Cell.hh"
 #include "CellStyle.hh"
+#include "NCAlign.hh"
 
 namespace ncpp
 {
@@ -102,64 +103,74 @@ namespace ncpp
 			ncplane_cursor_yx (plane, y, x);
 		}
 
-		bool putc (const Cell &c) const noexcept
+		int putc (const Cell &c) const noexcept
 		{
-			return ncplane_putc (plane, c) != -1;
+			return ncplane_putc (plane, c);
 		}
 
-		bool putc (int y, int x, const Cell &c) const noexcept
+		int putc (int y, int x, const Cell &c) const noexcept
 		{
-			return ncplane_putc_yx (plane, y, x, c) != -1;
+			return ncplane_putc_yx (plane, y, x, c);
 		}
 
-		bool putc (char c) const noexcept
+		int putc (char c) const noexcept
 		{
-			return ncplane_putsimple (plane, c) != -1;
+			return ncplane_putsimple (plane, c);
 		}
 
-		bool putc (int y, int x, char c) const noexcept
+		int putc (int y, int x, char c) const noexcept
 		{
-			return ncplane_putsimple_yx (plane, y, x, c) != -1;
+			return ncplane_putsimple_yx (plane, y, x, c);
 		}
 
-		bool putc (const char *gclust, uint32_t attr, uint64_t channels, int *sbytes) const noexcept
+		int putc (const char *gclust, uint32_t attr, uint64_t channels, int *sbytes) const noexcept
 		{
-			return ncplane_putegc (plane, gclust, attr, channels, sbytes) != -1;
+			return ncplane_putegc (plane, gclust, attr, channels, sbytes);
 		}
 
-		bool putc (int y, int x, const char *gclust, uint32_t attr, uint64_t channels, int *sbytes) const noexcept
+		int putc (int y, int x, const char *gclust, uint32_t attr, uint64_t channels, int *sbytes) const noexcept
 		{
-			return ncplane_putegc_yx (plane, y, x, gclust, attr, channels, sbytes) != -1;
+			return ncplane_putegc_yx (plane, y, x, gclust, attr, channels, sbytes);
 		}
 
-		bool putc (const wchar_t *gclust, uint32_t attr, uint64_t channels, int *sbytes) const noexcept
+		int putc (const wchar_t *gclust, uint32_t attr, uint64_t channels, int *sbytes) const noexcept
 		{
-			return ncplane_putwegc (plane, gclust, attr, channels, sbytes) != -1;
+			return ncplane_putwegc (plane, gclust, attr, channels, sbytes);
 		}
 
-		bool putc (int y, int x, const wchar_t *gclust, uint32_t attr, uint64_t channels, int *sbytes) const noexcept
+		int putc (int y, int x, const wchar_t *gclust, uint32_t attr, uint64_t channels, int *sbytes) const noexcept
 		{
-			return ncplane_putwegc_yx (plane, y, x, gclust, attr, channels, sbytes) != -1;
+			return ncplane_putwegc_yx (plane, y, x, gclust, attr, channels, sbytes);
 		}
 
-		bool putstr (const char *gclustarr) const noexcept
+		int putstr (const char *gclustarr) const noexcept
 		{
-			return ncplane_putstr (plane, gclustarr) < 0;
+			return ncplane_putstr (plane, gclustarr);
 		}
 
-		bool putstr (int y, int x, const char *gclustarr) const noexcept
+		int putstr (int y, int x, const char *gclustarr) const noexcept
 		{
-			return ncplane_putstr_yx (plane, y, x, gclustarr) < 0;
+			return ncplane_putstr_yx (plane, y, x, gclustarr);
 		}
 
-		bool putstr (const wchar_t *gclustarr) const noexcept
+		int putstr (int y, const char *s, NCAlign atype) const noexcept
 		{
-			return ncplane_putwstr (plane, gclustarr) < 0;
+			return ncplane_putstr_aligned (plane, y, s, static_cast<ncalign_e>(atype));
 		}
 
-		bool putstr (int y, int x, const wchar_t *gclustarr) const noexcept
+		int putstr (const wchar_t *gclustarr) const noexcept
 		{
-			return ncplane_putwstr_yx (plane, y, x, gclustarr) < 0;
+			return ncplane_putwstr (plane, gclustarr);
+		}
+
+		int putstr (int y, int x, const wchar_t *gclustarr) const noexcept
+		{
+			return ncplane_putwstr_yx (plane, y, x, gclustarr);
+		}
+
+		int putstr (int y, const wchar_t *gclustattr, NCAlign atype) const noexcept
+		{
+			return ncplane_putwstr_aligned (plane, y, gclustattr, static_cast<ncalign_e>(atype));
 		}
 
 		bool printf (const char* format, ...) const noexcept
