@@ -14,3 +14,12 @@ set(RGB_SOURCES
 add_executable(rgb ${RGB_SOURCES})
 add_dependencies(rgb notcurses++)
 target_link_libraries(rgb PRIVATE notcurses++)
+
+
+set(RGB_SOURCES
+  rgbbg.cc
+  )
+
+add_executable(rgbbg ${RGB_SOURCES})
+add_dependencies(rgbbg notcurses++)
+target_link_libraries(rgbbg PRIVATE notcurses++)
