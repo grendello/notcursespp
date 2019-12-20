@@ -195,11 +195,33 @@ namespace ncpp
 		{
 			va_list va;
 
-			va_start(va, format);
+			va_start (va, format);
 			int ret = ncplane_vprintf (plane, format, va);
-			va_end(va);
+			va_end (va);
 
 			return ret >= 0;
+		}
+
+		bool printf (int y, int x, const char *format, ...) const noexcept
+			__attribute__ ((format (printf, 4, 5)))
+		{
+			va_list va;
+
+			va_start (va, format);
+			int ret = ncplane_vprintf_yx (plane, y, x, format, va);
+			va_end (va);
+
+			return ret >= 0;
+		}
+
+		bool vprintf (const char* format, va_list ap) const noexcept
+		{
+			return ncplane_vprintf (plane, format, ap) >= 0;
+		}
+
+		bool vprintf (int y, int x, const char* format, va_list ap) const noexcept
+		{
+			return ncplane_vprintf_yx (plane, y, x, format, ap) >= 0;
 		}
 
 		int hline (const Cell &c, int len) const noexcept
@@ -334,9 +356,9 @@ namespace ncpp
 			return ncplane_set_fg_rgb (plane, r, g, b) != -1;
 		}
 
-		void set_fg (uint32_t channel) const noexcept
+		bool set_fg (uint32_t channel) const noexcept
 		{
-			ncplane_set_fg (plane, channel);
+			return ncplane_set_fg (plane, channel) != -1;
 		}
 
 		void set_fg_default () const noexcept
@@ -354,24 +376,14 @@ namespace ncpp
 			return ncplane_set_bg_rgb (plane, r, g, b) != -1;
 		}
 
-		void set_bg (uint32_t channel) const noexcept
+		bool set_bg (uint32_t channel) const noexcept
 		{
-			ncplane_set_bg (plane, channel);
+			return ncplane_set_bg (plane, channel) != -1;
 		}
 
 		void set_bg_default () const noexcept
 		{
 			ncplane_set_bg_default (plane);
-		}
-
-		bool vprintf (const char* format, va_list ap) const noexcept
-		{
-			return ncplane_vprintf (plane, format, ap) >= 0;
-		}
-
-		bool vprintf (int y, int x, const char* format, va_list ap) const noexcept
-		{
-			return ncplane_vprintf_yx (plane, y, x, format, ap) >= 0;
 		}
 
 		void styles_set (CellStyle styles) const noexcept
@@ -479,6 +491,7 @@ namespace ncpp
 		static std::mutex plane_map_mutex;
 
 		friend class NotCurses;
+		friend class Visual;
 	};
 }
 #endif

@@ -4,9 +4,12 @@
 #include <notcurses.h>
 
 #include "Root.hh"
+#include "NCScale.hh"
 
 namespace ncpp
 {
+	class Plane;
+
 	class NCPP_API_EXPORT Visual : public Root
 	{
 	public:
@@ -25,9 +28,9 @@ namespace ncpp
 			return visual;
 		}
 
-		static Visual* open_plane (const char *file, int *averr, int y, int x, bool stretch) noexcept
+		static Visual* open_plane (const char *file, int *averr, int y, int x, NCScale scale) noexcept
 		{
-			return new Visual (file, averr, y, x, stretch);
+			return new Visual (file, averr, y, x, scale);
 		}
 
 		bool render () const noexcept
@@ -40,15 +43,17 @@ namespace ncpp
 			return ncvisual_stream (get_notcurses (), visual, averr, streamer);
 		}
 
+		Plane* get_plane () const noexcept;
+
 	protected:
 		explicit Visual (ncplane *plane, const char *file, int *averr) noexcept
 		{
 			visual = ncplane_visual_open (plane, file, averr);
 		}
 
-		explicit Visual (const char *file, int *averr, int y, int x, bool stretch) noexcept
+		explicit Visual (const char *file, int *averr, int y, int x, NCScale scale) noexcept
 		{
-			visual = ncvisual_open_plane (get_notcurses (), file, averr, y, x, stretch);
+			visual = ncvisual_open_plane (get_notcurses (), file, averr, y, x, static_cast<ncscale_e>(scale));
 		}
 
 		~Visual () noexcept

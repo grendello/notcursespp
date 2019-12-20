@@ -44,6 +44,11 @@ namespace ncpp
 			return nc;
 		}
 
+		void reset_stats () const noexcept
+		{
+			notcurses_reset_stats (nc);
+		}
+
 		bool render () const noexcept
 		{
 			return notcurses_render (nc) == 0;
@@ -69,12 +74,12 @@ namespace ncpp
 			return static_cast<CellStyle>(notcurses_supported_styles (nc));
 		}
 
-		wchar_t getc (const timespec *ts, sigset_t *sigmask) const noexcept
+		char32_t getc (const timespec *ts, sigset_t *sigmask) const noexcept
 		{
 			return notcurses_getc (nc, ts, sigmask);
 		}
 
-		wchar_t getc (bool blocking = false) const noexcept
+		char32_t getc (bool blocking = false) const noexcept
 		{
 			if (blocking)
 				return notcurses_getc_blocking (nc);

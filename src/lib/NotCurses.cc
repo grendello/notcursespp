@@ -14,6 +14,7 @@ notcurses_options NotCurses::default_notcurses_options = {
 	/* retain_cursor */            false,
 	/* no_quit_sighandlers */      false,
 	/* no_winch_sighandler */      false,
+	/* suppress_bannner */         false,
 	/* renderfp */                 nullptr
 };
 
