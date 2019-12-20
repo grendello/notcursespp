@@ -32,6 +32,11 @@ namespace ncpp
 			return _instance;
 		}
 
+		operator bool () const noexcept
+		{
+			return nc != nullptr;
+		}
+
 		bool init (const notcurses_options &nc_opts, FILE *fp = nullptr) noexcept;
 
 		bool init (FILE *fp = nullptr) noexcept
