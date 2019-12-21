@@ -5,7 +5,7 @@
 #include <clocale>
 #include <iostream>
 
-#include <ncpp/NotCurses.hh>>
+#include <ncpp/NotCurses.hh>
 
 using namespace ncpp;
 

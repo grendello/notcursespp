@@ -33,9 +33,9 @@ namespace ncpp
 			return new Visual (file, averr, y, x, scale);
 		}
 
-		bool render () const noexcept
+		bool render (int begy, int begx, int leny, int lenx) const noexcept
 		{
-			return ncvisual_render (visual) != -1;
+			return ncvisual_render (visual, begy, begx, leny, lenx) != -1;
 		}
 
 		int stream (int *averr, streamcb streamer) const noexcept

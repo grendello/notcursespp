@@ -168,8 +168,9 @@ if(CMAKE_HOST_SYSTEM_NAME STREQUAL Linux)
   add_definitions(-D_GNU_SOURCE)
 endif()
 
-pkg_check_modules(NOTCURSES REQUIRED notcurses>=0.9.0)
+pkg_check_modules(NOTCURSES REQUIRED notcurses>=0.9.1)
 
+set(NOTCURSES_DATA_DIR "${NOTCURSES_PREFIX}/share/notcurses")
 include_directories(${NOTCURSES_INCLUDE_DIRS})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${NOTCURSES_CFLAGS} ${NOTCURSES_CFLAGS_OTHER}")
 
