@@ -12,7 +12,26 @@ namespace ncpp
 
 	class NCPP_API_EXPORT Visual : public Root
 	{
+	protected:
+		explicit Visual (ncplane *plane, const char *file, int *averr) noexcept
+		{
+			visual = ncplane_visual_open (plane, file, averr);
+		}
+
+		explicit Visual (const char *file, int *averr, int y, int x, NCScale scale) noexcept
+		{
+			visual = ncvisual_open_plane (get_notcurses (), file, averr, y, x, static_cast<ncscale_e>(scale));
+		}
+
 	public:
+		~Visual () noexcept
+		{
+			if (visual == nullptr)
+				return;
+
+			ncvisual_destroy (visual);
+		}
+
 		operator bool () noexcept
 		{
 			return visual != nullptr;
@@ -33,6 +52,11 @@ namespace ncpp
 			return new Visual (file, averr, y, x, scale);
 		}
 
+		AVFrame* decode (int *averr) const noexcept
+		{
+			return ncvisual_decode (visual, averr);
+		}
+
 		bool render (int begy, int begx, int leny, int lenx) const noexcept
 		{
 			return ncvisual_render (visual, begy, begx, leny, lenx) != -1;
@@ -44,25 +68,6 @@ namespace ncpp
 		}
 
 		Plane* get_plane () const noexcept;
-
-	protected:
-		explicit Visual (ncplane *plane, const char *file, int *averr) noexcept
-		{
-			visual = ncplane_visual_open (plane, file, averr);
-		}
-
-		explicit Visual (const char *file, int *averr, int y, int x, NCScale scale) noexcept
-		{
-			visual = ncvisual_open_plane (get_notcurses (), file, averr, y, x, static_cast<ncscale_e>(scale));
-		}
-
-		~Visual () noexcept
-		{
-			if (visual == nullptr)
-				return;
-
-			ncvisual_destroy (visual);
-		}
 
 	private:
 		ncvisual *visual;

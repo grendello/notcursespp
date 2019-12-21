@@ -64,6 +64,11 @@ namespace ncpp
 			return notcurses_resize (nc, rows, cols) == 0;
 		}
 
+		void term_dim_yx (int *rows, int *cols) const noexcept
+		{
+			notcurses_term_dim_yx (nc, rows, cols);
+		}
+
 		bool refresh () const noexcept
 		{
 			return notcurses_refresh (nc) == 0;
@@ -73,6 +78,7 @@ namespace ncpp
 		{
 			return notcurses_palette_size (static_cast<const notcurses*> (nc));
 		}
+
 
 		CellStyle get_supported_styles () const noexcept
 		{

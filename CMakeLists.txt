@@ -168,6 +168,8 @@ if(CMAKE_HOST_SYSTEM_NAME STREQUAL Linux)
   add_definitions(-D_GNU_SOURCE)
 endif()
 
+pkg_check_modules(AVUTIL REQUIRED libavutil>=56.0)
+pkg_check_modules(AVFORMAT REQUIRED libavformat>=57.0)
 pkg_check_modules(NOTCURSES REQUIRED notcurses>=0.9.1)
 
 set(NOTCURSES_DATA_DIR "${NOTCURSES_PREFIX}/share/notcurses")
@@ -176,6 +178,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${NOTCURSES_CFLAGS} ${NOTCURSES_CFLAGS_O
 
 add_subdirectory(src/lib)
 add_subdirectory(src/poc)
+add_subdirectory(src/view)
 
 message(STATUS "")
 message(STATUS "Compiler: ${CMAKE_CXX_COMPILER}")
