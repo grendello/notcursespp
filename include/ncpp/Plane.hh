@@ -9,6 +9,7 @@
 #include "Root.hh"
 #include "Cell.hh"
 #include "Visual.hh"
+#include "PanelReel.hh"
 #include "CellStyle.hh"
 #include "NCAlign.hh"
 #include "NCBox.hh"
@@ -453,6 +454,11 @@ namespace ncpp
 			return new Visual (plane, file, averr);
 		}
 
+		PanelReel* panelreel_create (const panelreel_options *popts = nullptr, int efd = -1) const noexcept
+		{
+			return new PanelReel (plane, popts, efd);
+		}
+
 		// Some Cell APIs go here since they act on individual panels even though it may seem weird at points (e.g.
 		// release)
 
@@ -492,6 +498,8 @@ namespace ncpp
 
 		friend class NotCurses;
 		friend class Visual;
+		friend class PanelReel;
+		friend class Tablet;
 	};
 }
 #endif

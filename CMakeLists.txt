@@ -170,7 +170,7 @@ endif()
 
 pkg_check_modules(AVUTIL REQUIRED libavutil>=56.0)
 pkg_check_modules(AVFORMAT REQUIRED libavformat>=57.0)
-pkg_check_modules(NOTCURSES REQUIRED notcurses>=0.9.1)
+pkg_check_modules(NOTCURSES REQUIRED notcurses>=0.9.2)
 
 set(NOTCURSES_DATA_DIR "${NOTCURSES_PREFIX}/share/notcurses")
 include_directories(${NOTCURSES_INCLUDE_DIRS})

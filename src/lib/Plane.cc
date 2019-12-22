@@ -1,7 +1,7 @@
 #include <config.hh>
 
-#include "ncpp/Plane.hh"
-#include "ncpp/internal/Helpers.hh"
+#include <ncpp/Plane.hh>
+#include <ncpp/internal/Helpers.hh>
 
 using namespace ncpp;
 

@@ -1,7 +1,9 @@
 set(NCPP_SOURCES
   NotCurses.cc
+  PanelReel.cc
   Plane.cc
   Root.cc
+  Tablet.cc
   Visual.cc
   )
 
