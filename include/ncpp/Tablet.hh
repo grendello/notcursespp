@@ -12,22 +12,28 @@ namespace ncpp
 {
 	class Plane;
 
-	class Tablet : public Root
+	class NCPP_API_EXPORT Tablet : public Root
 	{
 	public:
 		explicit Tablet (tablet *t)
 			: _tablet (t)
 		{};
 
-		void* get_userptr () const noexcept
+		template<typename T>
+		T* get_userptr () const noexcept
 		{
-			return tablet_userptr (_tablet);
+			return static_cast<T*>(tablet_userptr (_tablet));
+		}
+
+		static Tablet* get_instance (tablet *t) noexcept
+		{
+			return map_tablet (t);
 		}
 
 		Plane* get_plane () const noexcept;
 
 	protected:
-		static Tablet* map_tablet (tablet *ncp) noexcept;
+		static Tablet* map_tablet (tablet *t) noexcept;
 		static void unmap_tablet (Tablet *p) noexcept;
 
 		tablet* get_tablet () const noexcept

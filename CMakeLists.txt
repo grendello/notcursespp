@@ -179,6 +179,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${NOTCURSES_CFLAGS} ${NOTCURSES_CFLAGS_O
 add_subdirectory(src/lib)
 add_subdirectory(src/poc)
 add_subdirectory(src/view)
+add_subdirectory(src/planereel)
 
 message(STATUS "")
 message(STATUS "Compiler: ${CMAKE_CXX_COMPILER}")

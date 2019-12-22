@@ -1,6 +1,7 @@
 #ifndef __NCPP_PANEL_REEL_HH
 #define __NCPP_PANEL_REEL_HH
 
+#include <memory>
 #include <notcurses.h>
 
 #include "Tablet.hh"
@@ -10,7 +11,7 @@ namespace ncpp
 {
 	class Plane;
 
-	class PanelReel : public Root
+	class NCPP_API_EXPORT PanelReel : public Root
 	{
 	public:
 		static panelreel_options default_options;
@@ -45,6 +46,7 @@ namespace ncpp
 			return reel;
 		}
 
+		// TODO: add an overload using callback that takes Tablet instance instead of struct tablet
 		Tablet* add (Tablet *after, Tablet *before, tabletcb cb, void *opaque = nullptr) const noexcept
 		{
 			tablet *t = panelreel_add (reel, get_tablet (after), get_tablet (before), cb, opaque);
