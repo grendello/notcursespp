@@ -15,6 +15,7 @@ notcurses_options NotCurses::default_notcurses_options = {
 	/* no_quit_sighandlers */      false,
 	/* no_winch_sighandler */      false,
 	/* suppress_bannner */         false,
+	/* clear_screen_start */       false,
 	/* renderfp */                 nullptr
 };
 

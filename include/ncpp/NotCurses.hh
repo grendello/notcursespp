@@ -79,6 +79,15 @@ namespace ncpp
 			return notcurses_palette_size (static_cast<const notcurses*> (nc));
 		}
 
+		bool mouse_enable () const noexcept
+		{
+			return notcurses_mouse_enable (nc) != -1;
+		}
+
+		bool mouse_disable () const noexcept
+		{
+			return notcurses_mouse_disable (nc) != -1;
+		}
 
 		CellStyle get_supported_styles () const noexcept
 		{
