@@ -92,11 +92,11 @@ int main (void)
 				pr->del_focused ();
 				break;
 
-			case static_cast<char32_t>(NCKey::Up): // TODO: fix, ugly
+			case NCKey::Up:
 				pr->prev ();
 				break;
 
-			case static_cast<char32_t>(NCKey::Down): // TODO: fix, ugly
+			case NCKey::Down:
 				pr->next ();
 				break;
 
