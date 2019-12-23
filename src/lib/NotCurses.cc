@@ -22,13 +22,13 @@ notcurses_options NotCurses::default_notcurses_options = {
 NotCurses::~NotCurses () noexcept
 {
 	if (nc != nullptr)
-		notcurses_stop (nc);
+		stop ();
 }
 
 bool NotCurses::init (const notcurses_options &nc_opts, FILE *fp) noexcept
 {
 	if (!initialized) {
-		nc = notcurses_init (&nc_opts, fp);
+		nc = notcurses_init (&nc_opts, fp == nullptr ? stdout : fp);
 		initialized = true;
 	}
 

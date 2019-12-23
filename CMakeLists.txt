@@ -181,6 +181,7 @@ add_subdirectory(src/poc)
 add_subdirectory(src/view)
 add_subdirectory(src/planereel)
 add_subdirectory(src/input)
+add_subdirectory(src/demo)
 
 message(STATUS "")
 message(STATUS "Compiler: ${CMAKE_CXX_COMPILER}")

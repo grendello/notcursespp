@@ -2,6 +2,7 @@
 #define __NCPP_PLANE_HH
 
 #include <cstdarg>
+#include <ctime>
 #include <map>
 #include <mutex>
 #include <notcurses.h>
@@ -74,6 +75,11 @@ namespace ncpp
 				ylen,
 				xlen
 			) == 0;
+		}
+
+		bool fadeout (timespec *ts) const noexcept
+		{
+			return ncplane_fadeout (plane, ts) != -1;
 		}
 
 		void erase () const noexcept
@@ -245,22 +251,34 @@ namespace ncpp
 			return ncplane_vline_interp (plane, c, len, c1, c2);
 		}
 
-		bool load_box (uint32_t attrs, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr,
-					   Cell &hl, Cell &vl, const char *gclusters) const noexcept
+		bool load_box (uint32_t attrs, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr, Cell &hl, Cell &vl, const char *gclusters) const noexcept
 		{
 			return cells_load_box (plane, attrs, channels, ul, ur, ll, lr, hl, vl, gclusters) != -1;
 		}
 
-		bool load_rounded_box (uint32_t attr, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr,
-							   Cell &hl, Cell &vl) const noexcept
+		bool load_box (CellStyle style, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr, Cell &hl, Cell &vl, const char *gclusters) const noexcept
+		{
+			return load_box (static_cast<uint32_t>(style), channels, ul, ur, ll, lr, hl, vl, gclusters);
+		}
+
+		bool load_rounded_box (uint32_t attr, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr, Cell &hl, Cell &vl) const noexcept
 		{
 			return cells_rounded_box (plane, attr, channels, ul, ur, ll, lr, hl, vl) != -1;
 		}
 
-		bool load_double_box (uint32_t attr, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr,
-							  Cell &hl, Cell &vl) const noexcept
+		bool load_rounded_box (CellStyle style, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr, Cell &hl, Cell &vl) const noexcept
+		{
+			return load_rounded_box (static_cast<uint32_t>(style), channels, ul, ur, ll, lr, hl, vl);
+		}
+
+		bool load_double_box (uint32_t attr, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr, Cell &hl, Cell &vl) const noexcept
 		{
 			return cells_double_box (plane, attr, channels, ul, ur, ll, lr, hl, vl) != -1;
+		}
+
+		bool load_double_box (CellStyle style, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr, Cell &hl, Cell &vl) const noexcept
+		{
+			return load_double_box (static_cast<uint32_t>(style), channels, ul, ur, ll, lr, hl, vl);
 		}
 
 		bool box (const Cell &ul, const Cell &ur, const Cell &ll, const Cell &lr,

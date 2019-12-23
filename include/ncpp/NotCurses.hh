@@ -42,12 +42,17 @@ namespace ncpp
 
 		bool init (FILE *fp = nullptr) noexcept
 		{
-			return init (default_notcurses_options, fp == nullptr ? stdout : fp);
+			return init (default_notcurses_options, fp);
 		}
 
 		notcurses* get_notcurses () const noexcept
 		{
 			return nc;
+		}
+
+		void get_stats (ncstats *stats) const noexcept
+		{
+			notcurses_stats (nc, stats);
 		}
 
 		void reset_stats () const noexcept
@@ -115,6 +120,17 @@ namespace ncpp
 			}
 
 			return stdplane;
+		}
+
+		bool stop () noexcept
+		{
+			if (nc == nullptr)
+				return false;
+
+			bool ret = notcurses_stop (nc) != -1;
+			nc = nullptr;
+
+			return ret;
 		}
 
 		Plane* get_top () noexcept;
