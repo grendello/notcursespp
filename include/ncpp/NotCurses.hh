@@ -11,6 +11,7 @@
 #include <notcurses.h>
 
 #include "CellStyle.hh"
+#include "NCKey.hh"
 #include "Plane.hh"
 #include "_helpers.hh"
 

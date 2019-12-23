@@ -409,22 +409,22 @@ namespace ncpp
 
 		bool set_default (Cell &c) const noexcept
 		{
-			return ncplane_set_default (plane, c) == 0;
+			return ncplane_set_default (plane, c) >= 0;
 		}
 
 		bool get_default (Cell &c) const noexcept
 		{
-			return ncplane_default (plane, c) == 0;
+			return ncplane_default (plane, c) >= 0;
 		}
 
 		bool at_cursor (Cell &c) const noexcept
 		{
-			return ncplane_at_cursor (plane, c) == 0;
+			return ncplane_at_cursor (plane, c) >= 0;
 		}
 
 		bool at_yx (int y, int x, Cell &c) const noexcept
 		{
-			return ncplane_at_yx (plane, y, x, c) == 0;
+			return ncplane_at_yx (plane, y, x, c) >= 0;
 		}
 
 		void* set_userptr (void *opaque) const noexcept
