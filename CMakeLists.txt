@@ -101,6 +101,7 @@ set(TEST_COMPILER_ARGS
   fno-rtti
   mpopcnt
   fpic
+  pthread
   )
 
 if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")

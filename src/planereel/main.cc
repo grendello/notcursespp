@@ -63,7 +63,7 @@ int main (void)
 		return EXIT_FAILURE;
 	}
 
-	if(n->putstr (0, "(a)dd (d)el (q)uit", NCAlign::Center) <= 0) {
+	if(n->putstr (0, NCAlign::Center, "(a)dd (d)el (q)uit") <= 0) {
 		return EXIT_FAILURE;
 	}
 

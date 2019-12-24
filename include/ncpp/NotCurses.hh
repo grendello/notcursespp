@@ -100,17 +100,17 @@ namespace ncpp
 			return static_cast<CellStyle>(notcurses_supported_styles (nc));
 		}
 
-		char32_t getc (const timespec *ts, sigset_t *sigmask) const noexcept
+		char32_t getc (const timespec *ts, sigset_t *sigmask, ncinput *ni = nullptr) const noexcept
 		{
-			return notcurses_getc (nc, ts, sigmask);
+			return notcurses_getc (nc, ts, sigmask, ni);
 		}
 
-		char32_t getc (bool blocking = false) const noexcept
+		char32_t getc (bool blocking = false, ncinput *ni = nullptr) const noexcept
 		{
 			if (blocking)
-				return notcurses_getc_blocking (nc);
+				return notcurses_getc_blocking (nc, ni);
 
-			return notcurses_getc_nblock (nc);
+			return notcurses_getc_nblock (nc, ni);
 		}
 
 		Plane* get_stdplane () noexcept

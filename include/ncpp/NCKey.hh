@@ -67,6 +67,28 @@ namespace ncpp
         static constexpr char32_t Exit      = NCKEY_EXIT;
         static constexpr char32_t Print     = NCKEY_PRINT;
         static constexpr char32_t Refresh   = NCKEY_REFRESH;
+		static constexpr char32_t Button1   = NCKEY_BUTTON1;
+		static constexpr char32_t Button2   = NCKEY_BUTTON2;
+		static constexpr char32_t Button3   = NCKEY_BUTTON3;
+		static constexpr char32_t Button4   = NCKEY_BUTTON4;
+		static constexpr char32_t Button5   = NCKEY_BUTTON5;
+		static constexpr char32_t Button6   = NCKEY_BUTTON6;
+		static constexpr char32_t Button7   = NCKEY_BUTTON7;
+		static constexpr char32_t Button8   = NCKEY_BUTTON8;
+		static constexpr char32_t Button9   = NCKEY_BUTTON9;
+		static constexpr char32_t Button10  = NCKEY_BUTTON10;
+		static constexpr char32_t Button11  = NCKEY_BUTTON11;
+		static constexpr char32_t Release   = NCKEY_RELEASE;
+
+		static bool IsMouse (char32_t ch) noexcept
+		{
+			return nckey_mouse_p (ch);
+		}
+
+		static bool IsSuppUAB (char32_t ch) noexcept
+		{
+			return wchar_supppuab_p (ch);
+		}
 	};
 }
 #endif

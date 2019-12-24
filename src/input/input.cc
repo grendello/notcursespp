@@ -5,9 +5,10 @@
 #include <cstring>
 #include <cstdlib>
 #include <clocale>
-#include <limits>
 #include <iostream>
+#include <termios.h>
 
+#include <limits>
 #include <ncpp/NotCurses.hh>
 #include <ncpp/Plane.hh>
 
@@ -83,6 +84,18 @@ const char* nckeystr (char32_t spkey)
 		case NCKey::Exit:    return "exit";
 		case NCKey::Print:   return "print";
 		case NCKey::Refresh: return "refresh";
+		case NCKey::Button1: return "mouse (button 1 pressed)";
+		case NCKey::Button2: return "mouse (button 2 pressed)";
+		case NCKey::Button3: return "mouse (button 3 pressed)";
+		case NCKey::Button4: return "mouse (button 4 pressed)";
+		case NCKey::Button5: return "mouse (button 5 pressed)";
+		case NCKey::Button6: return "mouse (button 6 pressed)";
+		case NCKey::Button7: return "mouse (button 7 pressed)";
+		case NCKey::Button8: return "mouse (button 8 pressed)";
+		case NCKey::Button9: return "mouse (button 9 pressed)";
+		case NCKey::Button10: return "mouse (button 10 pressed)";
+		case NCKey::Button11: return "mouse (button 11 pressed)";
+		case NCKey::Release: return "mouse (button released)";
 		default:            return "unknown";
 	}
 }
@@ -156,7 +169,7 @@ int main (void)
 	n->set_fg (0);
 	n->set_bg (0xbb64bb);
 	n->styles_set (CellStyle::Underline);
-	if (n->putstr (0, "mash some keys, yo. give that mouse some waggle!", NCAlign::Center) <= 0) {
+	if (n->putstr (0, NCAlign::Center, "mash keys, yo. give that mouse some waggle! ctrl+d exits.") <= 0) {
 		return EXIT_FAILURE;
 	}
 
@@ -171,9 +184,14 @@ int main (void)
 		return EXIT_FAILURE;
 	}
 
-	while (errno = 0, (r = nc->getc (true)) < INVALID_CHAR) {
+	ncinput ni;
+	while (errno = 0, (r = nc->getc (true, &ni)) < INVALID_CHAR) {
 		if (r == 0) { // interrupted by signal
 			continue;
+		}
+
+		if (r == CEOT) {
+			return EXIT_SUCCESS;
 		}
 
 		if (!n->cursor_move_yx (y, 0)) {
@@ -182,18 +200,23 @@ int main (void)
 
 		if (r < 0x80) {
 			n->set_fg_rgb (128, 250, 64);
-			if (!n->printf ("Got ASCII: [0x%02x (%03d)] '%lc'\n", r, r, iswprint(r) ? r : printutf8(r))) {
+			if (!n->printf ("Got ASCII: [0x%02x (%03d)] '%lc'", r, r, iswprint(r) ? r : printutf8(r))) {
 				break;
 			}
 		} else {
 			if (wchar_supppuab_p (r)) {
 				n->set_fg_rgb (250, 64, 128);
-				if (!n->printf ("Got special key: [0x%02x (%02d)] '%s'\n", r, r, nckeystr(r))) {
+				if (!n->printf ("Got special key: [0x%02x (%02d)] '%s'", r, r, nckeystr(r))) {
 					break;
+				}
+				if (NCKey::IsMouse (r)) {
+					if (!n->printf (" x: %d y: %d", ni.x, ni.y)) {
+						break;
+					}
 				}
 			} else {
 				n->set_fg_rgb (64, 128, 250);
-				n->printf ("Got UTF-8: [0x%08x] '%lc'\n", r, r);
+				n->printf ("Got UTF-8: [0x%08x] '%lc'", r, r);
 			}
 		}
 

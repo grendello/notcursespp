@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <cstdlib>
+#include <atomic>
 #include <iostream>
 
 #include "demo.hh"
@@ -18,11 +19,18 @@
 using namespace ncpp;
 
 // ansi terminal definition-4-life
-static constexpr int MIN_SUPPORTED_ROWS = 25;
+static constexpr int MIN_SUPPORTED_ROWS = 24;
 static constexpr int MIN_SUPPORTED_COLS = 80;
+
+static std::atomic_bool interrupted (false);
 
 static constexpr char DEFAULT_DEMO[] = "ixemlubgswvpo";
 static char datadir[PATH_MAX] = NOTCURSES_DATA_DIR;
+
+void interrupt_demo (void)
+{
+	interrupted.store (true);
+}
 
 char* find_data (const char* datum)
 {
@@ -162,19 +170,35 @@ intro (NotCurses &nc)
 		return false;
 	}
 
-	if (ncp->putstr (rows / 2 - 2, s1, NCAlign::Center) != (int)strlen(s1)) {
+	if (ncp->putstr (rows / 2 - 2, NCAlign::Center, s1) != (int)strlen(s1)) {
 		return false;
 	}
 
 	ncp->styles_on (CellStyle::Italic | CellStyle::Bold);
-	if (ncp->putstr (rows / 2, str, NCAlign::Center) != (int)strlen(str)) {
+	if (ncp->putstr (rows / 2, NCAlign::Center, str) != (int)strlen(str)) {
 		return false;
 	}
 
-	ncp->styles_off (CellStyle::Italic | CellStyle::Bold);
+	ncp->styles_off (CellStyle::Italic);
+	ncp->set_fg_rgb (0xff, 0xff, 0xff);
+	if (ncp->putstr (rows - 3, NCAlign::Center, "press q at any time to quit") < 0) {
+		return false;
+	}
+	ncp->styles_off (CellStyle::Bold);
+
 	constexpr wchar_t wstr[] = L"▏▁ ▂ ▃ ▄ ▅ ▆ ▇ █ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁▕";
-	if (ncp->putstr (rows / 2 - 5, wstr, NCAlign::Center) != (int)wcslen(wstr)) {
-		// return -1;
+	if (ncp->putstr (rows / 2 - 5, NCAlign::Center, wstr) < 0) {
+		return false;
+	}
+
+	if (rows < 45) {
+		ncp->set_fg_rgb (0xc0, 0, 0x80);
+		ncp->set_bg_rgb (0x20, 0x20, 0x20);
+		ncp->styles_on (CellStyle::Blink); // heh FIXME replace with pulse
+		if (ncp->putstr (2, NCAlign::Center, "demo runs best with at least 45 lines") < 0){
+			return false;
+		}
+		ncp->styles_off (CellStyle::Blink); // heh FIXME replace with pulse
 	}
 
 	if (!nc.render ()) {
@@ -207,6 +231,13 @@ ext_demos (NotCurses &nc, const char* demos)
 	uint64_t prevns = timespec_to_ns (&start);
 	for (size_t i = 0 ; i < strlen (demos) ; ++i) {
 		results[i].selector = demos[i];
+	}
+
+	for (size_t i = 0 ; i < strlen (demos) ; ++i) {
+		if (interrupted) {
+			break;
+		}
+
 		switch (demos[i]) {
 			case 'i': ret = intro (nc); break;
 			case 'o': ret = outro (nc); break;
@@ -227,17 +258,17 @@ ext_demos (NotCurses &nc, const char* demos)
 				break;
 		}
 
-		if (!ret) {
-			results[i].failed = true;
-			break;
-		}
-
 		nc.get_stats (&results[i].stats);
 		nc.reset_stats ();
 		clock_gettime (CLOCK_MONOTONIC, &now);
 		uint64_t nowns = timespec_to_ns(&now);
 		results[i].timens = nowns - prevns;
 		prevns = nowns;
+
+		if (!ret) {
+			results[i].failed = true;
+			break;
+		}
 	}
 	return results;
 }
@@ -325,13 +356,23 @@ int main (int argc, char** argv)
 		demos = DEFAULT_DEMO;
 	}
 
-	nc.init (nopts);
-	if (!nc) {
-		return EXIT_FAILURE;
-	}
-
+	bool failed;
 	demoresult *results = nullptr;
 	int dimx, dimy;
+
+	nc.init (nopts);
+	if (!nc) {
+		goto err;
+	}
+
+	if (!nc.mouse_enable ()) {
+		goto err;
+	}
+
+	if (!input_dispatcher (nc)) {
+		goto err;
+	}
+
 	nc.term_dim_yx (&dimy, &dimx);
 	if (dimy < MIN_SUPPORTED_ROWS || dimx < MIN_SUPPORTED_COLS) {
 		goto err;
@@ -353,12 +394,8 @@ int main (int argc, char** argv)
 		return EXIT_FAILURE;
 	}
 
+	failed = false;
 	for (size_t i = 0 ; i < strlen (demos) ; ++i) {
-		if (!results[i].selector) {
-			std::cout << " Error running last demo. Did you need provide -p?" << std::endl;
-			break;
-		}
-
 		char totalbuf[BPREFIXSTRLEN + 1];
 		bprefix (results[i].stats.render_bytes, 1, totalbuf, 0);
 		double avg = results[i].stats.render_ns / (double)results[i].stats.renders;
@@ -370,12 +407,18 @@ int main (int argc, char** argv)
 				BPREFIXSTRLEN, totalbuf,
 				results[i].stats.render_ns / 1000,
 				GIG / avg,
-				results[i].failed ? "***FAILED" : "");
-		// FIXME
+				results[i].failed ? "***FAILED" : results[i].stats.renders ? ""  : "***NOT RUN");
+		if (results[i].failed) {
+			failed = true;
+		}
 	}
 
 	delete results;
-	return EXIT_SUCCESS;
+
+	if (failed) {
+		std::cerr << " Error running demo. Did you need provide -p?" << std::endl;
+	}
+	return failed ? EXIT_FAILURE : EXIT_SUCCESS;
 
   err:
 	nc.term_dim_yx (&dimy, &dimx);

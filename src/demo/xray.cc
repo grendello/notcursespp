@@ -17,21 +17,41 @@ static const char* leg[] = {
 "                                                                                                                  888P                                          ",
 };
 
+static Plane* killme = nullptr; // FIXME
+
 // FIXME: find a better way to get the instance of NotCurses (or not?)
 static int
 perframecb ([[maybe_unused]] struct notcurses *_nc, [[maybe_unused]] ncvisual* ncv)
 {
 	NotCurses &nc = NotCurses::get_instance ();
+	static Plane *n = nullptr;
 	static int startr = 0x80;
 	static int startg = 0xff;
 	static int startb = 0x80;
 	static int frameno = 0;
-	int dimx, dimy;
-	Plane* n = nc.get_stdplane ();
-	n->get_dim (&dimy, &dimx);
-	n->putc (0, 0, 'a');
 
-	int y = dimy - sizeof(leg) / sizeof(*leg) - 3;
+	int dimx, dimy, y;
+	if (n == nullptr) {
+		Plane* nstd = nc.get_stdplane ();
+		nstd->get_dim (&dimy, &dimx);
+		y = dimy - sizeof(leg) / sizeof(*leg);
+		// FIXME how will this plane be destroyed?
+		n = new Plane (sizeof(leg) / sizeof(*leg), dimx, y, 0);
+	    if (n == nullptr) {
+			return false;
+		}
+		killme = n;
+	}
+	n->get_dim (&dimy, &dimx);
+
+	y = 0;
+	Cell c(' ');
+	c.set_fg_alpha (Cell::AlphaTransparent);
+	c.set_bg_alpha (Cell::AlphaTransparent);
+	n->set_default (c);
+	n->set_fg_alpha (Cell::AlphaBlend);
+	n->set_bg_alpha (Cell::AlphaBlend);
+	// fg/bg rgbs are set within loop
 	int x = dimx - frameno;
 	for (size_t l = 0 ; l < sizeof(leg) / sizeof(*leg) ; ++l, ++y) {
 		int r = startr;
@@ -87,7 +107,13 @@ perframecb ([[maybe_unused]] struct notcurses *_nc, [[maybe_unused]] ncvisual* n
 
 bool xray_demo (NotCurses &nc)
 {
-	Plane* n = nc.get_stdplane ();
+	int dimx, dimy;
+	Plane* nstd = nc.get_stdplane ();
+	nstd->get_dim (&dimy, &dimx);
+	Plane *n = new Plane (dimy, dimx, 0, 0);
+	if (n == nullptr) {
+		return false;
+	}
 	char* path = find_data ("notcursesI.avi");
 	int averr;
 	Visual* ncv = n->visual_open (path, &averr);
@@ -101,6 +127,8 @@ bool xray_demo (NotCurses &nc)
 
 	ncv->stream (&averr, perframecb);
 	delete ncv;
+	delete n;
+	delete killme;
 
 	return true;
 }

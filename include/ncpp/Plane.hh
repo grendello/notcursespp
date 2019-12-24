@@ -177,9 +177,9 @@ namespace ncpp
 			return ncplane_putstr_yx (plane, y, x, gclustarr);
 		}
 
-		int putstr (int y, const char *s, NCAlign atype) const noexcept
+		int putstr (int y, NCAlign atype, const char *s) const noexcept
 		{
-			return ncplane_putstr_aligned (plane, y, s, static_cast<ncalign_e>(atype));
+			return ncplane_putstr_aligned (plane, y, static_cast<ncalign_e>(atype), s);
 		}
 
 		int putstr (const wchar_t *gclustarr) const noexcept
@@ -192,9 +192,9 @@ namespace ncpp
 			return ncplane_putwstr_yx (plane, y, x, gclustarr);
 		}
 
-		int putstr (int y, const wchar_t *gclustattr, NCAlign atype) const noexcept
+		int putstr (int y, NCAlign atype, const wchar_t *gclustattr) const noexcept
 		{
-			return ncplane_putwstr_aligned (plane, y, gclustattr, static_cast<ncalign_e>(atype));
+			return ncplane_putwstr_aligned (plane, y, static_cast<ncalign_e>(atype), gclustattr);
 		}
 
 		bool printf (const char* format, ...) const noexcept
@@ -221,6 +221,18 @@ namespace ncpp
 			return ret >= 0;
 		}
 
+		bool printf (int y, NCAlign align, const char *format, ...) const noexcept
+			__attribute__ ((format (printf, 4, 5)))
+		{
+			va_list va;
+
+			va_start (va, format);
+			bool ret = vprintf (y, align, format, va);
+			va_end (va);
+
+			return ret;
+		}
+
 		bool vprintf (const char* format, va_list ap) const noexcept
 		{
 			return ncplane_vprintf (plane, format, ap) >= 0;
@@ -229,6 +241,11 @@ namespace ncpp
 		bool vprintf (int y, int x, const char* format, va_list ap) const noexcept
 		{
 			return ncplane_vprintf_yx (plane, y, x, format, ap) >= 0;
+		}
+
+		bool vprintf (int y, NCAlign align, const char *format, va_list ap) const noexcept
+		{
+			return ncplane_vprintf_aligned (plane, y, static_cast<ncalign_e>(align), format, ap) >= 0;
 		}
 
 		int hline (const Cell &c, int len) const noexcept

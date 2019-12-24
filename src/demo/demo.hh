@@ -29,6 +29,36 @@ bool xray_demo (ncpp::NotCurses &nc);
 bool luigi_demo (ncpp::NotCurses &nc);
 bool outro (ncpp::NotCurses &nc);
 
+/*------------------------------- demo input API --------------------------*/
+bool input_dispatcher (ncpp::NotCurses &nc);
+int stop_input (void);
+
+// if 'q' is pressed at any time during the demo, gracefully interrupt/exit
+void interrupt_demo (void);
+
+// demos should not call notcurses_getc() directly, as it's being monitored by
+// the toplevel event listener. instead, call this intermediate API. just
+// replace 'notcurses' with 'demo'.
+char32_t demo_getc (const struct timespec* ts, ncinput* ni);
+
+// 'ni' may be NULL if the caller is uninterested in event details. If no event
+// is ready, returns 0.
+static inline char32_t
+demo_getc_nblock (ncinput* ni)
+{
+	struct timespec ts = { /*.tv_sec =*/ 0, /*.tv_nsec =*/ 0 };
+	return demo_getc (&ts, ni);
+}
+
+// 'ni' may be NULL if the caller is uninterested in event details. Blocks
+// until an event is processed or a signal is received.
+static inline char32_t
+demo_getc_blocking (ncinput* ni)
+{
+	return demo_getc (nullptr, ni);
+}
+/*----------------------------- end demo input API -------------------------*/
+
 int timespec_subtract(struct timespec *result, const struct timespec *time1,
                       struct timespec *time0);
 
