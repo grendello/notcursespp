@@ -1,5 +1,8 @@
 #include <cstdlib>
 #include <clocale>
+#include <sstream>
+#include <getopt.h>
+#include <iostream>
 
 #include <ncpp/NotCurses.hh>
 #include <ncpp/PanelReel.hh>
@@ -38,11 +41,101 @@ int tabletfxn (tablet* tb, int begx, int begy, int maxx, int maxy, bool cliptop)
 	return tctx->getLines () > maxy - begy ? maxy - begy : tctx->getLines ();
 }
 
-int main (void)
+void usage (const char* argv0, std::ostream& c, int status)
+{
+	c << "usage: " << argv0 << " [ -h ] | options" << std::endl;
+	c << " --ot: offset from top" << std::endl;
+	c << " --ob: offset from bottom" << std::endl;
+	c << " --ol: offset from left" << std::endl;
+	c << " --or: offset from right" << std::endl;
+	c << " -b bordermask: hex panelreel border mask (0x0..0xf)" << std::endl;
+	c << " -t tabletmask: hex tablet border mask (0x0..0xf)" << std::endl;
+
+	exit (status);
+}
+
+constexpr int OPT_TOPOFF = 100;
+constexpr int OPT_BOTTOMOFF = 101;
+constexpr int OPT_LEFTOFF = 102;
+constexpr int OPT_RIGHTOFF = 103;
+
+void parse_args (int argc, char** argv, struct notcurses_options* opts, struct panelreel_options* popts)
+{
+	const struct option longopts[] = {
+		{ /*.name =*/ "ot", /*.has_arg =*/ 1, /*.flag =*/ nullptr, OPT_TOPOFF, },
+		{ /*.name =*/ "ob", /*.has_arg =*/ 1, /*.flag =*/ nullptr, OPT_BOTTOMOFF, },
+		{ /*.name =*/ "ol", /*.has_arg =*/ 1, /*.flag =*/ nullptr, OPT_LEFTOFF, },
+		{ /*.name =*/ "or", /*.has_arg =*/ 1, /*.flag =*/ nullptr, OPT_RIGHTOFF, },
+		{ /*.name =*/ nullptr, /*.has_arg =*/ 0, /*.flag =*/ nullptr, 0, },
+	};
+
+	int c;
+	while ((c = getopt_long (argc, argv, "b:t:h", longopts, nullptr)) != -1) {
+		switch (c) {
+			case OPT_BOTTOMOFF: {
+				std::stringstream ss;
+				ss << optarg;
+				ss >> popts->boff;
+				break;
+			}
+
+			case OPT_TOPOFF: {
+				 std::stringstream ss;
+				 ss << optarg;
+				 ss >> popts->toff;
+				 break;
+			}
+
+			case OPT_LEFTOFF: {
+				  std::stringstream ss;
+				  ss << optarg;
+				  ss >> popts->loff;
+				  break;
+			}
+
+			case OPT_RIGHTOFF: {
+				   std::stringstream ss;
+				   ss << optarg;
+				   ss >> popts->roff;
+				   break;
+			}
+
+			case 'b': {
+					std::stringstream ss;
+					ss << std::hex << optarg;
+					ss >> popts->bordermask;
+					break;
+			}
+
+			case 't': {
+				std::stringstream ss;
+				ss << std::hex << optarg;
+				ss >> popts->tabletmask;
+				break;
+			}
+
+			case 'h':
+				usage (argv[0], std::cout, EXIT_SUCCESS);
+				break;
+
+			default:
+				std::cerr << "Unknown option" << std::endl;
+				usage (argv[0], std::cerr, EXIT_FAILURE);
+				break;
+		}
+	}
+
+	opts->suppress_bannner = true;
+	opts->clear_screen_start = true;
+}
+
+int main (int argc, char **argv)
 {
 	if (setlocale(LC_ALL, "") == nullptr) {
 		return EXIT_FAILURE;
 	}
+
+	parse_args (argc, argv, &NotCurses::default_notcurses_options, &PanelReel::default_options);
 
 	NotCurses &nc = NotCurses::get_instance ();
 	nc.init ();
@@ -70,6 +163,7 @@ int main (void)
 	// TODO: add a channels class
 	channels_set_fg (&PanelReel::default_options.focusedchan, 0xffffff);
 	channels_set_bg (&PanelReel::default_options.focusedchan, 0x00c080);
+	channels_set_fg (&PanelReel::default_options.borderchan, 0x00c080);
 
 	PanelReel* pr = n->panelreel_create ();
 	if (pr == nullptr || !nc.render ()) {
