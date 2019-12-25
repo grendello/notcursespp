@@ -89,10 +89,18 @@ zoom_map (NotCurses &nc, const char* map)
 	int zoomy = truey;
 	int zoomx = truex;
 	Plane* zncp = nullptr;
+	int delty = 2;
+	int deltx = 2;
+
+	if (truey > truex) {
+		++delty;
+	} else if (truex > truey * 2) {
+		++deltx;
+	}
 	while (zoomy < vy && zoomx < vx) {
 		delete zncp;
-		zoomy += 2;
-		zoomx += 2;
+		zoomy += delty;
+		zoomx += deltx;
 		zncp = new Plane (zoomy, zoomx, 0, 0, nullptr);
 		Visual* zncv = zncp->visual_open (map, &averr);
 		if (zncv == nullptr || !*zncv) {
@@ -129,6 +137,7 @@ static bool
 draw_eagle (Plane* n, const char* sprite)
 {
 	Cell bgc;
+	bgc.set_fg_alpha (Cell::AlphaTransparent);
 	bgc.set_bg_alpha (Cell::AlphaTransparent);
 	n->set_default (bgc);
 	n->release (bgc);
@@ -213,7 +222,7 @@ eagles (NotCurses &nc)
 			} else if (e[i].yoff + height >= truey) {
 				e[i].yoff = truey - height - 1;
 			}
-			e[i].xoff += random () % ((truex + 80) / 80);
+			e[i].xoff += (random () % (truex / 80)) + 1;
 			e[i].n->move (e[i].yoff, e[i].xoff);
 			++eaglesmoved;
 		}

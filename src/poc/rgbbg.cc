@@ -38,15 +38,21 @@ int main (void)
 		for (x = 0 ; x < dimx ; ++x) {
 			n->set_bg_rgb (r, g, b);
 			n->putc ('x');
+			if (!n->set_bg_rgb (r, g, b)) {
+				goto err;
+			}
+			if (n->putc ('x') <= 0) {
+				goto err;
+			}
 			if (g % 2) {
-				if (b-- == 0) {
+				if (--b <= 0) {
 					++g;
 					b = 0;
 				}
 			} else {
-				if (b++ >= 256) {
+				if (++b >= 256) {
 					++g;
-					b = 256;
+					b = 255;
 				}
 			}
 		}
@@ -57,4 +63,7 @@ int main (void)
 	}
 
 	return EXIT_SUCCESS;
+
+  err:
+	return EXIT_FAILURE;
 }

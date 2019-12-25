@@ -7,6 +7,12 @@
 #include <unistd.h>
 #include <iostream>
 
+extern "C" {
+#include <libavutil/pixdesc.h>
+#include <libavutil/avconfig.h>
+#include <libavcodec/avcodec.h> // ffmpeg doesn't reliably "C"-guard itself
+}
+
 #include <ncpp/NotCurses.hh>
 #include <ncpp/Visual.hh>
 
