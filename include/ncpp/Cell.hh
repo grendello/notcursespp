@@ -28,7 +28,7 @@ namespace ncpp
 	public:
 		Cell () noexcept
 		{
-			cell_init (&_cell);
+			init ();
 		}
 
 		explicit Cell (uint32_t c) noexcept
@@ -54,6 +54,11 @@ namespace ncpp
 		cell& get () noexcept
 		{
 			return _cell;
+		}
+
+		void init () noexcept
+		{
+			cell_init (&_cell);
 		}
 
 		void set_styles (CellStyle styles) noexcept

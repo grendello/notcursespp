@@ -92,6 +92,11 @@ namespace ncpp
 			ncplane_dim_yx (plane, rows, cols);
 		}
 
+		void get_yx (int *y, int *x) const noexcept
+		{
+			ncplane_yx (plane, y, x);
+		}
+
 		bool move (int y, int x) const noexcept
 		{
 			return ncplane_move_yx (plane, y, x) != -1;
@@ -117,7 +122,7 @@ namespace ncpp
 			return ncplane_move_above (plane, above.plane) != -1;
 		}
 
-		bool cursor_move_yx (int y, int x) const noexcept
+		bool cursor_move (int y, int x) const noexcept
 		{
 			return ncplane_cursor_move_yx (plane, y, x) != -1;
 		}

@@ -70,7 +70,7 @@ namespace ncpp
 			return notcurses_resize (nc, rows, cols) == 0;
 		}
 
-		void term_dim_yx (int *rows, int *cols) const noexcept
+		void get_term_dim (int *rows, int *cols) const noexcept
 		{
 			notcurses_term_dim_yx (nc, rows, cols);
 		}

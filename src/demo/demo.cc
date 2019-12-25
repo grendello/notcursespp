@@ -102,7 +102,7 @@ intro (NotCurses &nc)
 	Cell c;
 	c.set_bg_rgb (0x20, 0x20, 0x20);
 	ncp->set_default (c);
-	if (!ncp->cursor_move_yx (0, 0)) {
+	if (!ncp->cursor_move (0, 0)) {
 		return false;
 	}
 
@@ -136,7 +136,7 @@ intro (NotCurses &nc)
 	for (y = 5 ; y < rows - 6 ; ++y) {
 		c.set_bg_rgb (0, y * ys, 0);
 		for (x = 5 ; x < cols - 6 ; ++x) {
-			if (!ncp->cursor_move_yx (y, x)) {
+			if (!ncp->cursor_move (y, x)) {
 				return false;
 			}
 
@@ -151,7 +151,7 @@ intro (NotCurses &nc)
 	// FIXME: add proper Channels API
 	channels_set_fg_rgb (&channels, 90, 0, 90);
 	channels_set_bg_rgb (&channels, 0, 0, 180);
-	if (!ncp->cursor_move_yx (4, 4)) {
+	if (!ncp->cursor_move (4, 4)) {
 		return false;
 	}
 
@@ -373,7 +373,7 @@ int main (int argc, char** argv)
 		goto err;
 	}
 
-	nc.term_dim_yx (&dimy, &dimx);
+	nc.get_term_dim (&dimy, &dimx);
 	if (dimy < MIN_SUPPORTED_ROWS || dimx < MIN_SUPPORTED_COLS) {
 		goto err;
 	}
@@ -421,7 +421,7 @@ int main (int argc, char** argv)
 	return failed ? EXIT_FAILURE : EXIT_SUCCESS;
 
   err:
-	nc.term_dim_yx (&dimy, &dimx);
+	nc.get_term_dim (&dimy, &dimx);
 	nc.stop ();
 	if (dimy < MIN_SUPPORTED_ROWS || dimx < MIN_SUPPORTED_COLS) {
 		std::cerr << "At least an 80x25 terminal is required (current: " << dimx << "x" << dimy << std::endl;

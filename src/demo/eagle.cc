@@ -80,7 +80,7 @@ zoom_map (NotCurses &nc, const char* map)
 
 	// we start at the lower left corner of the outzoomed map
 	int truex, truey; // dimensions of true display
-	nc.term_dim_yx (&truey, &truex);
+	nc.get_term_dim (&truey, &truex);
 
 	int vwidth = frame->width;
 	int vx = vwidth;
@@ -147,11 +147,11 @@ draw_eagle (Plane* n, const char* sprite)
 	uint64_t channels = 0;
 	// optimization so we can elide more color changes, see README's "#perf"
 	channels_set_bg_rgb (&channels, 0x00, 0x00, 0x00);
-	n->cursor_move_yx (0, 0);
+	n->cursor_move (0, 0);
 	for (s = 0 ; sprite[s] ; ++s) {
 		switch (sprite[s]) {
 			case '0':
-				n->cursor_move_yx ((s + 1) / 16, (s + 1) % 16);
+				n->cursor_move ((s + 1) / 16, (s + 1) % 16);
 				break;
 
 			case '1':
@@ -181,7 +181,7 @@ static bool
 eagles (NotCurses &nc)
 {
 	int truex, truey; // dimensions of true display
-	nc.term_dim_yx (&truey, &truex);
+	nc.get_term_dim (&truey, &truex);
 
 	struct timespec flapiter;
 	timespec_div (&demodelay, truex / 2, &flapiter);

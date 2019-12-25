@@ -38,7 +38,7 @@ int ncview (NotCurses &nc, Visual *ncv, int *averr)
 	// out on a loaded machine
 	while (clock_gettime (CLOCK_MONOTONIC, &start),
 		  (avf = ncv->decode (averr))) {
-		n->cursor_move_yx (0, 0);
+		n->cursor_move (0, 0);
 		n->printf ("Got frame %05d\u2026", frame);
 		if (!ncv->render (0, 0, 0, 0)) {
 			return -1;
@@ -73,7 +73,7 @@ int main (int argc, char** argv)
 		return EXIT_FAILURE;
 	}
 	int dimy, dimx;
-	nc.term_dim_yx (&dimy, &dimx);
+	nc.get_term_dim (&dimy, &dimx);
 
 	Plane ncp (dimy - 1, dimx, 1, 0);
 	if (ncp == nullptr) {

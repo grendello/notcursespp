@@ -165,7 +165,7 @@ int main (void)
 	}
 
 	Plane* n = nc->get_stdplane ();
-	nc->term_dim_yx (&dimy, &dimx);
+	nc->get_term_dim (&dimy, &dimx);
 	n->set_fg (0);
 	n->set_bg (0xbb64bb);
 	n->styles_set (CellStyle::Underline);
@@ -194,7 +194,7 @@ int main (void)
 			return EXIT_SUCCESS;
 		}
 
-		if (!n->cursor_move_yx (y, 0)) {
+		if (!n->cursor_move (y, 0)) {
 			break;
 		}
 
