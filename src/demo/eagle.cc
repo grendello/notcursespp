@@ -1,5 +1,6 @@
 #include <config.hh>
 
+#include <memory>
 #include <libavutil/frame.h>
 
 #include <ncpp/NotCurses.hh>
@@ -33,11 +34,11 @@ const char eagle1[] =
 	;
 
 // display the level map scaled to fit entirely within the visual area
-Visual*
+std::shared_ptr<Visual>
 outzoomed_map (NotCurses &nc, const char* map)
 {
 	int averr;
-	Visual *ncv = Visual::open_plane (map, &averr, 0, 0, NCScale::Scale);
+	std::shared_ptr<Visual> ncv (Visual::open_plane (map, &averr, 0, 0, NCScale::Scale));
 	if (ncv == nullptr || !*ncv) {
 		return nullptr;
 	}
@@ -57,7 +58,7 @@ outzoomed_map (NotCurses &nc, const char* map)
 	return ncv;
 }
 
-Plane*
+std::shared_ptr<Plane>
 zoom_map (NotCurses &nc, const char* map)
 {
 	int averr;
@@ -66,17 +67,15 @@ zoom_map (NotCurses &nc, const char* map)
 	// and begin opening it on larger and larger planes that fit on the screen
 	// less and less. eventually, reach our natural NCSCALE_NONE size and begin
 	// scrolling through the map, whooooooooosh.
-	Visual* ncv = Visual::open_plane (map, &averr, 0, 0, NCScale::None);
+	std::shared_ptr<Visual> ncv (Visual::open_plane (map, &averr, 0, 0, NCScale::None));
 	if (ncv == nullptr || !*ncv) {
 		return nullptr;
 	}
 
 	struct AVFrame* frame;
 	if ((frame = ncv->decode (&averr)) == nullptr) {
-		delete ncv;
 		return nullptr;
 	}
-	delete ncv;
 
 	// we start at the lower left corner of the outzoomed map
 	int truex, truey; // dimensions of true display
@@ -88,7 +87,7 @@ zoom_map (NotCurses &nc, const char* map)
 	int vy = vheight / 2;
 	int zoomy = truey;
 	int zoomx = truex;
-	Plane* zncp = nullptr;
+	std::shared_ptr<Plane> zncp;
 	int delty = 2;
 	int deltx = 2;
 
@@ -98,43 +97,33 @@ zoom_map (NotCurses &nc, const char* map)
 		++deltx;
 	}
 	while (zoomy < vy && zoomx < vx) {
-		delete zncp;
+		zncp.reset ();
 		zoomy += delty;
 		zoomx += deltx;
-		zncp = new Plane (zoomy, zoomx, 0, 0, nullptr);
-		Visual* zncv = zncp->visual_open (map, &averr);
+		zncp = std::make_shared<Plane> (zoomy, zoomx, 0, 0);
+		std::unique_ptr<Visual> zncv (zncp->visual_open (map, &averr));
 		if (zncv == nullptr || !*zncv) {
-			delete ncv;
-			delete zncp;
 			return nullptr;
 		}
 
 		if (zncv->decode (&averr) == nullptr) {
-			delete zncv;
-			delete zncp;
 			return nullptr;
 		}
 
 		if (!zncv->render ((zoomy - truey) * 2, 0, 0, ((float)truex / zoomx) * zoomx)) {
-			delete zncv;
-			delete zncp;
 			return nullptr;
 		}
 
 		if (!nc.render ()) {
-			delete zncv;
-			delete zncp;
 			return nullptr;
 		}
-
-		delete zncv;
 	}
 
 	return zncp;
 }
 
 static bool
-draw_eagle (Plane* n, const char* sprite)
+draw_eagle (std::shared_ptr<Plane> n, const char* sprite)
 {
 	Cell bgc;
 	bgc.set_fg_alpha (Cell::AlphaTransparent);
@@ -190,14 +179,14 @@ eagles (NotCurses &nc)
 	const int width = 16;
 	struct eagle {
 		int yoff, xoff;
-		Plane* n;
+		std::shared_ptr<Plane> n;
 	} e[3];
 
 	for (size_t i = 0 ; i < sizeof(e) / sizeof(*e) ; ++i) {
 		e[i].xoff = 0;
 		e[i].yoff = random () % ((truey - height) / 2);
-		e[i].n = new Plane (height, width, e[i].yoff, e[i].xoff, nullptr);
-		if(e[i].n == nullptr || !*e[i].n) {
+		e[i].n = std::make_shared<Plane> (height, width, e[i].yoff, e[i].xoff);
+		if (e[i].n == nullptr || !*e[i].n) {
 			return false;
 		}
 
@@ -230,10 +219,6 @@ eagles (NotCurses &nc)
 		nanosleep (&flapiter, NULL);
 	} while (eaglesmoved);
 
-	for (size_t i = 0 ; i < sizeof(e) / sizeof(*e) ; ++i) {
-		delete e[i].n;
-	}
-
 	return true;
 }
 
@@ -241,23 +226,20 @@ eagles (NotCurses &nc)
 bool eagle_demo (NotCurses &nc)
 {
 	char* map = find_data ("eagles.png");
-	Visual* zo;
+	std::shared_ptr<Visual> zo;
 	if ((zo = outzoomed_map (nc, map)) == nullptr) {
 		delete map;
 		return false;
 	}
 
-	delete zo;
-	Plane* zncp = zoom_map (nc, map);
+	std::shared_ptr<Plane> zncp = zoom_map (nc, map);
 	if (zncp == nullptr) {
 		delete map;
 		return false;
 	}
 	if (!eagles (nc)) {
-		delete zncp;
 		return false;
 	}
-	delete zncp;
 	delete map;
 
 	return true;

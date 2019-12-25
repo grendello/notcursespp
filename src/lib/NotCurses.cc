@@ -21,8 +21,11 @@ notcurses_options NotCurses::default_notcurses_options = {
 
 NotCurses::~NotCurses () noexcept
 {
-	if (nc != nullptr)
-		stop ();
+	if (nc == nullptr)
+		return;
+
+	delete stdplane;
+	stop ();
 }
 
 bool NotCurses::init (const notcurses_options &nc_opts, FILE *fp) noexcept

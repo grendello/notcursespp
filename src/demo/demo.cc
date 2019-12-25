@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <atomic>
 #include <iostream>
+#include <memory>
 
 #include "demo.hh"
 
@@ -95,8 +96,8 @@ usage (const char* exe, int status)
 static bool
 intro (NotCurses &nc)
 {
-	Plane* ncp;
-	if ((ncp = nc.get_stdplane ()) == nullptr) {
+	Plane *ncp = nc.get_stdplane ();
+	if (ncp == nullptr || !*ncp) {
 		return false;
 	}
 	Cell c;

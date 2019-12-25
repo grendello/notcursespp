@@ -43,7 +43,8 @@ namespace ncpp
 			if (plane == nullptr)
 				return;
 
-			ncplane_destroy (plane);
+			if (!is_stdplane && get_notcurses ())
+				ncplane_destroy (plane);
 			unmap_plane (this);
 		}
 
@@ -528,11 +529,17 @@ namespace ncpp
 		}
 
 	protected:
+		explicit Plane (ncplane *plane, bool is_stdplane) noexcept
+			: plane (plane),
+			  is_stdplane (is_stdplane)
+		{}
+
 		static Plane* map_plane (ncplane *ncp, Plane *associated_plane = nullptr) noexcept;
 		static void unmap_plane (Plane *p) noexcept;
 
 	private:
 		ncplane *plane;
+		bool is_stdplane = false;
 		static std::map<ncplane*,Plane*> *plane_map;
 		static std::mutex plane_map_mutex;
 

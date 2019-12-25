@@ -1,7 +1,7 @@
 #include <config.hh>
 
 #include <unistd.h>
-
+#include <memory>
 #include <ncpp/NotCurses.hh>
 
 #include "demo.hh"
@@ -35,7 +35,7 @@ grow_rgb (uint32_t* rgb)
 }
 
 static bool
-slideitslideit (NotCurses &nc, Plane *n, uint64_t deadline, int *direction)
+slideitslideit (NotCurses &nc, std::shared_ptr<Plane> n, uint64_t deadline, int *direction)
 {
 	int dimy, dimx;
 	int yoff, xoff;
@@ -117,7 +117,7 @@ slidepanel (NotCurses &nc)
 	// default foreground color -- unused -- and the default background color,
 	// both fully opaque. Thus we'll get a square of the background color (which
 	// might be "transparent", i.e. a copy of the underlying desktop).
-	auto n = new Plane (ny, nx, yoff, xoff, nullptr);
+	auto n = std::make_shared<Plane> (ny, nx, yoff, xoff);
 	struct timespec cur;
 	Cell c (' ');
 
@@ -128,7 +128,6 @@ slidepanel (NotCurses &nc)
 	int direction = random () % 4;
 
 	if (!slideitslideit (nc, n, deadlinens, &direction)) {
-		delete n;
 		return false;
 	}
 
@@ -144,7 +143,6 @@ slidepanel (NotCurses &nc)
 	clock_gettime (CLOCK_MONOTONIC, &cur);
 	deadlinens = timespec_to_ns (&cur) + DELAYSCALE * timespec_to_ns (&demodelay);
 	if (!slideitslideit (nc, n, deadlinens, &direction)) {
-		delete n;
 		return false;
 	}
 
@@ -161,7 +159,6 @@ slidepanel (NotCurses &nc)
 	clock_gettime (CLOCK_MONOTONIC, &cur);
 	deadlinens = timespec_to_ns (&cur) + DELAYSCALE * timespec_to_ns (&demodelay);
 	if (!slideitslideit (nc, n, deadlinens, &direction)) {
-		delete n;
 		return false;
 	}
 
@@ -178,7 +175,6 @@ slidepanel (NotCurses &nc)
 	clock_gettime (CLOCK_MONOTONIC, &cur);
 	deadlinens = timespec_to_ns (&cur) + DELAYSCALE * timespec_to_ns (&demodelay);
 	if (!slideitslideit (nc, n, deadlinens, &direction)) {
-		delete n;
 		return false;
 	}
 
@@ -196,11 +192,9 @@ slidepanel (NotCurses &nc)
 	clock_gettime (CLOCK_MONOTONIC, &cur);
 	deadlinens = timespec_to_ns (&cur) + DELAYSCALE * timespec_to_ns (&demodelay);
 	if (!slideitslideit (nc, n, deadlinens, &direction)) {
-		delete n;
 		return false;
 	}
 
-	delete n;
 	return true;
 }
 
@@ -213,7 +207,7 @@ bool maxcolor_demo (NotCurses &nc)
 	int maxx, maxy;
 	nc.get_term_dim (&maxy, &maxx);
 
-	Plane* n = nc.get_stdplane ();
+	Plane *n = nc.get_stdplane ();
 	n->set_fg_rgb (255, 255, 255);
 
 	uint64_t channels = 0;

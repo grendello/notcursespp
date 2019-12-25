@@ -115,8 +115,10 @@ namespace ncpp
 
 		Plane* get_stdplane () noexcept
 		{
+			// FIXME: improve this - do not allow the pointer to be destroyed or bad things happen (return a reference?
+			// Copy of the current instance?)
 			if (stdplane == nullptr) {
-				stdplane = new Plane (notcurses_stdplane (nc));
+				stdplane = new Plane (notcurses_stdplane (nc), true);
 			}
 
 			return stdplane;

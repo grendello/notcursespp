@@ -1,5 +1,7 @@
 #include <config.hh>
 
+#include <memory>
+
 #include "demo.hh"
 
 using namespace ncpp;
@@ -17,14 +19,12 @@ static const char* leg[] = {
 "                                                                                                                  888P                                          ",
 };
 
-static Plane* killme = nullptr; // FIXME
-
 // FIXME: find a better way to get the instance of NotCurses (or not?)
 static int
 perframecb ([[maybe_unused]] struct notcurses *_nc, [[maybe_unused]] ncvisual* ncv)
 {
 	NotCurses &nc = NotCurses::get_instance ();
-	static Plane *n = nullptr;
+	static std::shared_ptr<Plane> n;
 	static int startr = 0x80;
 	static int startg = 0xff;
 	static int startb = 0x80;
@@ -32,15 +32,14 @@ perframecb ([[maybe_unused]] struct notcurses *_nc, [[maybe_unused]] ncvisual* n
 
 	int dimx, dimy, y;
 	if (n == nullptr) {
-		Plane* nstd = nc.get_stdplane ();
+		std::unique_ptr<Plane> nstd (nc.get_stdplane ());
 		nstd->get_dim (&dimy, &dimx);
 		y = dimy - sizeof(leg) / sizeof(*leg);
 		// FIXME how will this plane be destroyed?
-		n = new Plane (sizeof(leg) / sizeof(*leg), dimx, y, 0);
+		n = std::make_shared<Plane> (sizeof(leg) / sizeof(*leg), dimx, y, 0);
 	    if (n == nullptr) {
 			return false;
 		}
-		killme = n;
 	}
 	n->get_dim (&dimy, &dimx);
 
@@ -110,13 +109,13 @@ bool xray_demo (NotCurses &nc)
 	int dimx, dimy;
 	Plane* nstd = nc.get_stdplane ();
 	nstd->get_dim (&dimy, &dimx);
-	Plane *n = new Plane (dimy, dimx, 0, 0);
-	if (n == nullptr) {
+	std::shared_ptr<Plane> n = std::make_shared<Plane> (dimy, dimx, 0, 0);
+	if (n == nullptr || !*n) {
 		return false;
 	}
 	char* path = find_data ("notcursesI.avi");
 	int averr;
-	Visual* ncv = n->visual_open (path, &averr);
+	std::unique_ptr<Visual> ncv (n->visual_open (path, &averr));
 	if (ncv == nullptr || !*ncv) {
 		return false;
 	}
@@ -126,9 +125,6 @@ bool xray_demo (NotCurses &nc)
 	}
 
 	ncv->stream (&averr, perframecb);
-	delete ncv;
-	delete n;
-	delete killme;
 
 	return true;
 }
