@@ -115,13 +115,7 @@ namespace ncpp
 
 		Plane* get_stdplane () noexcept
 		{
-			// FIXME: improve this - do not allow the pointer to be destroyed or bad things happen (return a reference?
-			// Copy of the current instance?)
-			if (stdplane == nullptr) {
-				stdplane = new Plane (notcurses_stdplane (nc), true);
-			}
-
-			return stdplane;
+			return new Plane (notcurses_stdplane (nc), true);
 		}
 
 		bool stop () noexcept
@@ -145,7 +139,6 @@ namespace ncpp
 
 	private:
 		notcurses *nc;
-		Plane *stdplane = nullptr;
 		std::atomic_bool initialized;
 		std::map<ncplane*, Plane*> *top_planes = nullptr;
 		std::mutex top_planes_mutex;

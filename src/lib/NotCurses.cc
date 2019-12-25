@@ -24,7 +24,6 @@ NotCurses::~NotCurses () noexcept
 	if (nc == nullptr)
 		return;
 
-	delete stdplane;
 	stop ();
 }
 

@@ -32,7 +32,7 @@ perframecb ([[maybe_unused]] struct notcurses *_nc, [[maybe_unused]] ncvisual* n
 
 	int dimx, dimy, y;
 	if (n == nullptr) {
-		std::unique_ptr<Plane> nstd (nc.get_stdplane ());
+		Plane *nstd = nc.get_stdplane ();
 		nstd->get_dim (&dimy, &dimx);
 		y = dimy - sizeof(leg) / sizeof(*leg);
 		// FIXME how will this plane be destroyed?
