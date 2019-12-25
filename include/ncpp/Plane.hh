@@ -40,11 +40,10 @@ namespace ncpp
 
 		~Plane () noexcept
 		{
-			if (plane == nullptr)
+			if (plane == nullptr || is_stdplane || !get_notcurses ())
 				return;
 
-			if (!is_stdplane && get_notcurses ())
-				ncplane_destroy (plane);
+			ncplane_destroy (plane);
 			unmap_plane (this);
 		}
 
@@ -80,7 +79,22 @@ namespace ncpp
 
 		bool fadeout (timespec *ts) const noexcept
 		{
+			return fadeout (static_cast<const timespec*>(ts));
+		}
+
+		bool fadeout (const timespec *ts) const noexcept
+		{
 			return ncplane_fadeout (plane, ts) != -1;
+		}
+
+		bool fadein (timespec *ts) const noexcept
+		{
+			return fadein (static_cast<const timespec*>(ts));
+		}
+
+		bool fadein (const timespec *ts) const noexcept
+		{
+			return ncplane_fadein (plane, ts) != -1;
 		}
 
 		void erase () const noexcept
