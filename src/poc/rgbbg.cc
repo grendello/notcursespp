@@ -25,19 +25,17 @@ int main (void)
 	}
 
 	int y, x, dimy, dimx;
-	Plane* n = nc.get_stdplane ();
+	Plane *n = nc.get_stdplane ();
 	n->get_dim (&dimy, &dimx);
 
 	int r , g, b;
 	r = 0;
 	g = 0x80;
 	b = 0;
-	n->set_fg_rgb (0x80, 0x80, 0x80);
 
+	n->set_fg_rgb (0x40, 0x20, 0x40);
 	for (y = 0 ; y < dimy ; ++y) {
 		for (x = 0 ; x < dimx ; ++x) {
-			n->set_bg_rgb (r, g, b);
-			n->putc ('x');
 			if (!n->set_bg_rgb (r, g, b)) {
 				goto err;
 			}

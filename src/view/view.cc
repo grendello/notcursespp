@@ -102,7 +102,7 @@ int main (int argc, char** argv)
 			return EXIT_FAILURE;
 		}
 
-		if (!ncv->stream (&averr, perframe)) {
+		if (ncv->stream (&averr, perframe, &frames)) {
 			av_make_error_string (errbuf.data (), errbuf.size (), averr);
 			std::cerr << "Error decoding " << argv[i] << ": " << errbuf.data () << std::endl;
 			return EXIT_FAILURE;

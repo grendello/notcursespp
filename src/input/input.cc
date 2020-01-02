@@ -119,7 +119,7 @@ dim_rows (Plane* n)
 	Cell c;
 	for (y = 2 ; y < dimy ; ++y) {
 		for (x = 0 ; x < dimx ; ++x) {
-			if (!n->get_at (y, x, c)) {
+			if (n->get_at (y, x, c) < 0) {
 				n->release (c);
 				return false;
 			}
@@ -203,17 +203,17 @@ int main (void)
 
 		if (r < 0x80) {
 			n->set_fg_rgb (128, 250, 64);
-			if (!n->printf ("ASCII: [0x%02x (%03d)] '%lc'", r, r, iswprint(r) ? r : printutf8(r))) {
+			if (n->printf ("ASCII: [0x%02x (%03d)] '%lc'", r, r, iswprint(r) ? r : printutf8(r)) < 0) {
 				break;
 			}
 		} else {
 			if (nckey_supppuab_p (r)) {
 				n->set_fg_rgb (250, 64, 128);
-				if (!n->printf ("Special: [0x%02x (%02d)] '%s'", r, r, nckeystr(r))) {
+				if (n->printf ("Special: [0x%02x (%02d)] '%s'", r, r, nckeystr(r)) < 0) {
 					break;
 				}
 				if (NCKey::IsMouse (r)) {
-					if (!n->printf (" x: %d y: %d", ni.x, ni.y)) {
+					if (n->printf (" x: %d y: %d", ni.x, ni.y) < 0) {
 						break;
 					}
 				}
