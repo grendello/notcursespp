@@ -1,6 +1,7 @@
 #ifndef __NCPP_PLANE_HH
 #define __NCPP_PLANE_HH
 
+#include <exception>
 #include <cstdarg>
 #include <ctime>
 #include <map>
@@ -34,18 +35,30 @@ namespace ncpp
 			map_plane (plane, this);
 		}
 
-		explicit Plane (Plane *n, int rows, int cols, int yoff, NCAlign align, void *opaque = nullptr) noexcept
+		explicit Plane (Plane &n, int rows, int cols, int yoff, NCAlign align, void *opaque = nullptr)
 		{
-			plane = ncplane_aligned (
-				n->plane,
-				rows,
-				cols,
-				yoff,
-				static_cast<ncalign_e>(align),
-				opaque
-			);
+			plane = create_plane (n, rows, cols, yoff, align, opaque);
+		}
 
-			map_plane (plane, this);
+		explicit Plane (Plane const& n, int rows, int cols, int yoff, NCAlign align, void *opaque = nullptr)
+		{
+			plane = create_plane (const_cast<Plane&>(n), rows, cols, yoff, align, opaque);
+		}
+
+		explicit Plane (Plane *n, int rows, int cols, int yoff, NCAlign align, void *opaque = nullptr)
+		{
+			if (n == nullptr)
+				throw std::invalid_argument ("'n' must not be null");
+
+			plane = create_plane (*n, rows, cols, yoff, align, opaque);
+		}
+
+		explicit Plane (Plane const* n, int rows, int cols, int yoff, NCAlign align, void *opaque = nullptr)
+		{
+			if (n == nullptr)
+				throw std::invalid_argument ("'n' must not be null");
+
+			plane = create_plane (const_cast<Plane&>(*n), rows, cols, yoff, align, opaque);
 		}
 
 		explicit Plane (ncplane *plane) noexcept
@@ -217,6 +230,14 @@ namespace ncpp
 		int putc (const Cell &c) const noexcept
 		{
 			return ncplane_putc (plane, c);
+		}
+
+		int putc (const Cell *c) const
+		{
+			if (c == nullptr)
+				throw std::invalid_argument ("'c' must not be null");
+
+			return putc (*c);
 		}
 
 		int putc (int y, int x, const Cell &c) const noexcept
@@ -544,9 +565,25 @@ namespace ncpp
 			return ncplane_at_cursor (plane, c) >= 0;
 		}
 
+		bool at_cursor (Cell *c) const
+		{
+			if (c == nullptr)
+				throw std::invalid_argument ("'c' must not be null");
+
+			return at_cursor (*c);
+		}
+
 		int get_at (int y, int x, Cell &c) const noexcept
 		{
 			return ncplane_at_yx (plane, y, x, c);
+		}
+
+		int get_at (int y, int x, Cell *c) const
+		{
+			if (c == nullptr)
+				throw std::invalid_argument ("'c' must not be null");
+
+			return get_at (y, x, *c);
 		}
 
 		void* set_userptr (void *opaque) const noexcept
@@ -604,6 +641,70 @@ namespace ncpp
 			cell_release (plane, cell);
 		}
 
+		int duplicate (Cell &target, Cell &source) const noexcept
+		{
+			return cell_duplicate (plane, target, source);
+		}
+
+		int duplicate (Cell &target, Cell const& source) const noexcept
+		{
+			return cell_duplicate (plane, target, source);
+		}
+
+		int duplicate (Cell &target, Cell *source) const
+		{
+			if (source == nullptr)
+				throw std::invalid_argument ("'source' must not be null");
+
+			return duplicate (target, *source);
+		}
+
+		int duplicate (Cell &target, Cell const* source) const
+		{
+			if (source == nullptr)
+				throw std::invalid_argument ("'source' must not be null");
+
+			return duplicate (target, *source);
+		}
+
+		int duplicate (Cell *target, Cell *source) const
+		{
+			if (target == nullptr)
+				throw std::invalid_argument ("'target' must not be null");
+
+			if (source == nullptr)
+				throw std::invalid_argument ("'source' must not be null");
+
+			return duplicate (*target, *source);
+		}
+
+		int duplicate (Cell *target, Cell const* source) const
+		{
+			if (target == nullptr)
+				throw std::invalid_argument ("'target' must not be null");
+
+			if (source == nullptr)
+				throw std::invalid_argument ("'source' must not be null");
+
+			return duplicate (*target, *source);
+		}
+
+		int duplicate (Cell *target, Cell &source) const
+		{
+			if (target == nullptr)
+				throw std::invalid_argument ("'target' must not be null");
+
+			return duplicate (*target, source);
+		}
+
+		int duplicate (Cell *target, Cell const& source) const
+		{
+			if (target == nullptr)
+				throw std::invalid_argument ("'target' must not be null");
+
+			return duplicate (*target, source);
+		}
+
 		// Upstream call doesn't take ncplane* but we put it here for parity with has_no_background below
 		bool has_no_foreground (Cell &cell) const noexcept
 		{
@@ -620,6 +721,11 @@ namespace ncpp
 			return cell_extended_gcluster (plane, cell);
 		}
 
+		const char* get_extended_gcluster (Cell const& cell) const noexcept
+		{
+			return cell_extended_gcluster (plane, cell);
+		}
+
 	protected:
 		explicit Plane (ncplane *plane, bool is_stdplane) noexcept
 			: plane (plane),
@@ -628,6 +734,21 @@ namespace ncpp
 
 		static Plane* map_plane (ncplane *ncp, Plane *associated_plane = nullptr) noexcept;
 		static void unmap_plane (Plane *p) noexcept;
+
+	private:
+		ncplane* create_plane (Plane &n, int rows, int cols, int yoff, NCAlign align, void *opaque) noexcept
+		{
+			return ncplane_aligned (
+				n.plane,
+				rows,
+				cols,
+				yoff,
+				static_cast<ncalign_e>(align),
+				opaque
+			);
+
+			map_plane (plane, this);
+		}
 
 	private:
 		ncplane *plane;

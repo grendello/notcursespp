@@ -12,7 +12,7 @@ set(DEMO_SOURCES
   sliding.cc
   unicodeblocks.cc
   view.cc
-  whiteworm.cc
+  witherworm.cc
   xray.cc
   )
 
