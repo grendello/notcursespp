@@ -54,11 +54,7 @@ namespace ncpp
 
 		~Plane () noexcept
 		{
-			if (plane == nullptr || is_stdplane || !get_notcurses ())
-				return;
-
-			ncplane_destroy (plane);
-			unmap_plane (this);
+			destroy ();
 		}
 
 		operator ncplane* () noexcept
@@ -74,6 +70,16 @@ namespace ncpp
 		operator bool () noexcept
 		{
 			return plane != nullptr;
+		}
+
+		void destroy () noexcept
+		{
+			if (plane == nullptr || is_stdplane || !get_notcurses ())
+				return;
+
+			ncplane_destroy (plane);
+			unmap_plane (this);
+			plane = nullptr;
 		}
 
 		bool resize (int keepy, int keepx, int keepleny, int keeplenx, int yoff, int xoff, int ylen, int xlen) const noexcept
