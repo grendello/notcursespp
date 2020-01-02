@@ -278,7 +278,7 @@ namespace ncpp
 			return ncplane_putwstr_aligned (plane, y, static_cast<ncalign_e>(atype), gclustattr);
 		}
 
-		bool printf (const char* format, ...) const noexcept
+		int printf (const char* format, ...) const noexcept
 			__attribute__ ((format (printf, 2, 3)))
 		{
 			va_list va;
@@ -287,10 +287,10 @@ namespace ncpp
 			int ret = ncplane_vprintf (plane, format, va);
 			va_end (va);
 
-			return ret >= 0;
+			return ret;
 		}
 
-		bool printf (int y, int x, const char *format, ...) const noexcept
+		int printf (int y, int x, const char *format, ...) const noexcept
 			__attribute__ ((format (printf, 4, 5)))
 		{
 			va_list va;
@@ -299,34 +299,34 @@ namespace ncpp
 			int ret = ncplane_vprintf_yx (plane, y, x, format, va);
 			va_end (va);
 
-			return ret >= 0;
+			return ret;
 		}
 
-		bool printf (int y, NCAlign align, const char *format, ...) const noexcept
+		int printf (int y, NCAlign align, const char *format, ...) const noexcept
 			__attribute__ ((format (printf, 4, 5)))
 		{
 			va_list va;
 
 			va_start (va, format);
-			bool ret = vprintf (y, align, format, va);
+			int ret = vprintf (y, align, format, va);
 			va_end (va);
 
 			return ret;
 		}
 
-		bool vprintf (const char* format, va_list ap) const noexcept
+		int vprintf (const char* format, va_list ap) const noexcept
 		{
-			return ncplane_vprintf (plane, format, ap) >= 0;
+			return ncplane_vprintf (plane, format, ap);
 		}
 
-		bool vprintf (int y, int x, const char* format, va_list ap) const noexcept
+		int vprintf (int y, int x, const char* format, va_list ap) const noexcept
 		{
-			return ncplane_vprintf_yx (plane, y, x, format, ap) >= 0;
+			return ncplane_vprintf_yx (plane, y, x, format, ap);
 		}
 
-		bool vprintf (int y, NCAlign align, const char *format, va_list ap) const noexcept
+		int vprintf (int y, NCAlign align, const char *format, va_list ap) const noexcept
 		{
-			return ncplane_vprintf_aligned (plane, y, static_cast<ncalign_e>(align), format, ap) >= 0;
+			return ncplane_vprintf_aligned (plane, y, static_cast<ncalign_e>(align), format, ap);
 		}
 
 		int hline (const Cell &c, int len) const noexcept

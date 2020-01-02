@@ -57,7 +57,7 @@ perframecb ([[maybe_unused]] struct notcurses *_nc, [[maybe_unused]] ncvisual* n
 	int g = startg;
 	int b = startb;
 	const size_t llen = strlen (leg[0]);
-	do{
+	do {
 		if (x + (int)llen <= 0) {
 			x += llen;
 		} else {
