@@ -121,7 +121,7 @@ draw_luigi (std::shared_ptr<Plane> n, const char* sprite)
 	Cell bgc;
 	bgc.set_fg_alpha (Cell::AlphaTransparent);
 	bgc.set_bg_alpha (Cell::AlphaTransparent);
-	n->set_default (bgc);
+	n->set_base (bgc);
 	n->release (bgc);
 
 	size_t s;
@@ -211,7 +211,7 @@ bool luigi_demo (NotCurses &nc)
 			lastseen->move_top ();
 		}
 		lastseen->move (yoff, i);
-		nc.render ();
+		demo_render (nc);
 		nanosleep (&stepdelay, nullptr);
 	}
 

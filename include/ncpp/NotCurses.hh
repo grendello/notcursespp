@@ -50,14 +50,24 @@ namespace ncpp
 			return nc;
 		}
 
+		bool can_fade () const noexcept
+		{
+			return notcurses_canfade (nc);
+		}
+
+		bool can_open () const noexcept
+		{
+			return notcurses_canopen (nc);
+		}
+
 		void get_stats (ncstats *stats) const noexcept
 		{
 			notcurses_stats (nc, stats);
 		}
 
-		void reset_stats () const noexcept
+		void reset_stats (ncstats *stats) const noexcept
 		{
-			notcurses_reset_stats (nc);
+			notcurses_reset_stats (nc, stats);
 		}
 
 		bool render () const noexcept
@@ -111,6 +121,11 @@ namespace ncpp
 				return notcurses_getc_blocking (nc, ni);
 
 			return notcurses_getc_nblock (nc, ni);
+		}
+
+		char* get_at (int yoff, int xoff, Cell &c) const noexcept
+		{
+			return notcurses_at_yx (nc, yoff, xoff, c);
 		}
 
 		Plane* get_stdplane () noexcept

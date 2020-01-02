@@ -61,6 +61,26 @@ namespace ncpp
 			cell_init (&_cell);
 		}
 
+		uint64_t set_fchannel (uint32_t channel) noexcept
+		{
+			return cell_set_fchannel (&_cell, channel);
+		}
+
+		uint64_t blend_fchannel (unsigned channel, unsigned blends) noexcept
+		{
+			return cell_blend_fchannel (&_cell, channel, blends);
+		}
+
+		uint64_t set_bchannel (uint32_t channel) noexcept
+		{
+			return cell_set_bchannel (&_cell, channel);
+		}
+
+		uint64_t blend_bchannel (unsigned channel, unsigned blends) noexcept
+		{
+			return cell_blend_bchannel (&_cell, channel, blends);
+		}
+
 		void set_styles (CellStyle styles) noexcept
 		{
 			cell_styles_set (&_cell, static_cast<unsigned>(styles));
@@ -98,27 +118,27 @@ namespace ncpp
 
 		unsigned get_bchannel () const noexcept
 		{
-			return cell_get_bchannel (&_cell);
+			return cell_bchannel (&_cell);
 		}
 
 		unsigned get_fchannel () const noexcept
 		{
-			return cell_get_fchannel (&_cell);
+			return cell_fchannel (&_cell);
 		}
 
 		unsigned get_fg () const noexcept
 		{
-			return cell_get_fg (&_cell);
+			return cell_fg (&_cell);
 		}
 
 		unsigned get_bg () const noexcept
 		{
-			return cell_get_bg (&_cell);
+			return cell_bg (&_cell);
 		}
 
 		unsigned get_fg_alpha () const noexcept
 		{
-			return cell_get_fg_alpha (&_cell);
+			return cell_fg_alpha (&_cell);
 		}
 
 		bool is_fg_default () const noexcept
@@ -133,7 +153,7 @@ namespace ncpp
 
 		unsigned get_bg_alpha () const noexcept
 		{
-			return cell_get_bg_alpha (&_cell);
+			return cell_bg_alpha (&_cell);
 		}
 
 		bool set_bg_alpha (int alpha) noexcept
@@ -143,7 +163,7 @@ namespace ncpp
 
 		unsigned get_fg_rgb (unsigned *r, unsigned *g, unsigned *b) const noexcept
 		{
-			return cell_get_fg_rgb (&_cell, r, g, b);
+			return cell_fg_rgb (&_cell, r, g, b);
 		}
 
 		bool set_fg_rgb (unsigned r, unsigned g, unsigned b) noexcept
@@ -163,7 +183,7 @@ namespace ncpp
 
 		unsigned get_bg_rgb (unsigned *r, unsigned *g, unsigned *b) const noexcept
 		{
-			return cell_get_bg_rgb (&_cell, r, g, b);
+			return cell_bg_rgb (&_cell, r, g, b);
 		}
 
 		bool set_bg_rgb (unsigned r, unsigned g, unsigned b) noexcept
@@ -184,6 +204,21 @@ namespace ncpp
 		bool is_bg_default () const noexcept
 		{
 			return cell_bg_default_p (&_cell);
+		}
+
+		bool has_no_foreground () const noexcept
+		{
+			return cell_noforeground_p (&_cell);
+		}
+
+		bool is_wide_right () const noexcept
+		{
+			return cell_wide_right_p (&_cell);
+		}
+
+		bool is_wide_left () const noexcept
+		{
+			return cell_wide_left_p (&_cell);
 		}
 
 	private:

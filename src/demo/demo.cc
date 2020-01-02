@@ -23,6 +23,8 @@ using namespace ncpp;
 static constexpr int MIN_SUPPORTED_ROWS = 24;
 static constexpr int MIN_SUPPORTED_COLS = 80;
 
+static int democount;
+static demoresult* results;
 static std::atomic_bool interrupted (false);
 
 static constexpr char DEFAULT_DEMO[] = "ixemlubgswvpo";
@@ -31,6 +33,15 @@ static char datadir[PATH_MAX] = NOTCURSES_DATA_DIR;
 void interrupt_demo (void)
 {
 	interrupted.store (true);
+}
+
+const demoresult* demoresult_lookup (int idx)
+{
+	if (idx < 0 || idx >= democount) {
+	    return nullptr;
+	}
+
+	return &results[idx];
 }
 
 char* find_data (const char* datum)
@@ -70,8 +81,10 @@ static void
 usage (const char* exe, int status)
 {
 	std::ostream &out = status == EXIT_SUCCESS ? std::cout : std::cerr;
-	out << "usage: " << exe << " [ -h ] [ -k ] [ -d mult ] [ -c ] [ -f renderfile ] demospec" << std::endl;
+	out << "usage: " << exe << " [ -hHVkc ] [ -d mult ] [ -f renderfile ] demospec" << std::endl;
 	out << " -h: this message" << std::endl;
+	out << " -V: print program name and version" << std::endl;
+	out << " -H: deploy the HUD" << std::endl;
 	out << " -k: keep screen; do not switch to alternate" << std::endl;
 	out << " -d: delay multiplier (float)" << std::endl;
 	out << " -f: render to file in addition to stdout" << std::endl;
@@ -85,7 +98,7 @@ usage (const char* exe, int status)
 	out << " m: run maxcolor" << std::endl;
 	out << " o: run outro" << std::endl;
 	out << " p: run panelreels" << std::endl;
-	out << " s: run shuffle" << std::endl;
+	out << " s: run sliders" << std::endl;
 	out << " u: run uniblock" << std::endl;
 	out << " v: run view" << std::endl;
 	out << " w: run witherworm" << std::endl;
@@ -102,7 +115,7 @@ intro (NotCurses &nc)
 	}
 	Cell c;
 	c.set_bg_rgb (0x20, 0x20, 0x20);
-	ncp->set_default (c);
+	ncp->set_base (c);
 	if (!ncp->cursor_move (0, 0)) {
 		return false;
 	}
@@ -202,30 +215,53 @@ intro (NotCurses &nc)
 		ncp->styles_off (CellStyle::Blink); // heh FIXME replace with pulse
 	}
 
-	if (!nc.render ()) {
+	if (!demo_render (nc)) {
 		return false;
 	}
 
 	nanosleep (&demodelay, nullptr);
 
 	struct timespec fade = demodelay;
-	ncp->fadeout (&fade);
+	ncp->fadeout (&fade, demo_fader);
 
 	return true;
 }
 
-typedef struct demoresult {
-	char selector;
-	struct ncstats stats;
-	uint64_t timens;
-	bool failed;
-} demoresult;
+static const char* demonames[26] = {
+	"",
+	"box",
+	"chunli",
+	"",
+	"eagle",
+	"",
+	"grid",
+	"",
+	"intro",
+	"",
+	"",
+	"luigi",
+	"maxcolor",
+	"",
+	"outro",
+	"panelreels",
+	"",
+	"",
+	"sliders",
+	"",
+	"uniblock",
+	"view",
+	"witherworms",
+	"xray",
+	"",
+	""
+};
 
 static demoresult*
 ext_demos (NotCurses &nc, const char* demos)
 {
 	bool ret = true;
-	auto results = new demoresult[strlen (demos)]();
+	results = new demoresult[strlen (demos)]();
+	democount = strlen (demos);
 
 	struct timespec start, now;
 	clock_gettime (CLOCK_MONOTONIC, &start);
@@ -238,6 +274,13 @@ ext_demos (NotCurses &nc, const char* demos)
 		if (interrupted) {
 			break;
 		}
+
+		int nameidx = demos[i] - 'a';
+		if (nameidx < 0 || nameidx > 25 || !demonames[nameidx]) {
+			std::cerr << "Invalid demo specification: " << demos[i] << std::endl;
+			ret = -1;
+		}
+		hud_schedule (demonames[nameidx]);
 
 		switch (demos[i]) {
 			case 'i': ret = intro (nc); break;
@@ -254,13 +297,13 @@ ext_demos (NotCurses &nc, const char* demos)
 			case 'w': ret = witherworm_demo (nc); break;
 			case 'p': ret = panelreel_demo (nc); break;
 			default:
-				std::cerr << "Unknown demo specification: " << *demos << std::endl;
+				std::cerr << "Unknown demo specification: " << demos[i] << std::endl;
 				ret = false;
 				break;
 		}
 
 		nc.get_stats (&results[i].stats);
-		nc.reset_stats ();
+		nc.reset_stats (&results[i].stats);
 		clock_gettime (CLOCK_MONOTONIC, &now);
 		uint64_t nowns = timespec_to_ns(&now);
 		results[i].timens = nowns - prevns;
@@ -270,6 +313,7 @@ ext_demos (NotCurses &nc, const char* demos)
 			results[i].failed = true;
 			break;
 		}
+		hud_completion_notify (&results[i]);
 	}
 	return results;
 }
@@ -278,16 +322,26 @@ ext_demos (NotCurses &nc, const char* demos)
 // specification, also returns NULL, heh. determine this by argv[optind];
 // if it's NULL, there were valid options, but no spec.
 static const char*
-handle_opts (int argc, char** argv, notcurses_options* opts)
+handle_opts (int argc, char** argv, notcurses_options* opts, bool *use_hud)
 {
 	bool constant_seed = false;
 	int c;
+
+	*use_hud = false;
 	memset (opts, 0, sizeof(*opts));
-	while ((c = getopt (argc, argv, "hckd:f:p:")) != EOF) {
+	while ((c = getopt (argc, argv, "HVhckd:f:p:")) != EOF) {
 		switch (c) {
+			case 'H':
+				*use_hud = true;
+				break;
+
 			case 'h':
 				usage (*argv, EXIT_SUCCESS);
 				break;
+
+			case 'V':
+				std::cout << "notcurses-demo version " << notcurses_version () << std::endl;
+				exit (EXIT_SUCCESS);
 
 			case 'c':
 				constant_seed = true;
@@ -349,8 +403,9 @@ int main (int argc, char** argv)
 		return EXIT_FAILURE;
 	}
 
+	bool use_hud;
 	const char* demos;
-	if ((demos = handle_opts (argc, argv, &nopts)) == nullptr) {
+	if ((demos = handle_opts (argc, argv, &nopts, &use_hud)) == nullptr) {
 		if(argv[optind] != nullptr) {
 			usage (*argv, EXIT_FAILURE);
 		}
@@ -358,7 +413,6 @@ int main (int argc, char** argv)
 	}
 
 	bool failed;
-	demoresult *results = nullptr;
 	int dimx, dimy;
 
 	nc.init (nopts);
@@ -368,6 +422,12 @@ int main (int argc, char** argv)
 
 	if (!nc.mouse_enable ()) {
 		goto err;
+	}
+
+	if (use_hud) {
+		if (hud_create (nc) == nullptr) {
+			goto err;
+		}
 	}
 
 	if (!input_dispatcher (nc)) {
@@ -386,8 +446,11 @@ int main (int argc, char** argv)
 		nanosleep (&demodelay, nullptr);
 	}
 
-	results = ext_demos (nc, demos);
-	if (results == nullptr) {
+	if (ext_demos (nc, demos) == nullptr) {
+		goto err;
+	}
+
+	if (!hud_destroy ()) {
 		goto err;
 	}
 

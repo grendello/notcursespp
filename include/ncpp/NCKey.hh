@@ -87,7 +87,7 @@ namespace ncpp
 
 		static bool IsSuppUAB (char32_t ch) noexcept
 		{
-			return wchar_supppuab_p (ch);
+			return nckey_supppuab_p (ch);
 		}
 	};
 }

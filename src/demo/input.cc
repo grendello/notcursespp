@@ -65,6 +65,27 @@ pass_along (const ncinput* ni)
 	return 0;
 }
 
+static bool
+handle_mouse (NotCurses *nc, const ncinput* ni)
+{
+	if (ni->id != NCKEY_BUTTON1 && ni->id != NCKEY_RELEASE) {
+		return true;
+	}
+
+	int ret;
+	if (ni->id == NCKEY_RELEASE) {
+		ret = hud_release ();
+	} else {
+		ret = hud_grab (ni->y, ni->x);
+	}
+
+	if (ret) {
+		ret = demo_render (*nc);
+	}
+
+	return ret;
+}
+
 static void *
 ultramegaok_demo (void* vnc)
 {
@@ -77,7 +98,7 @@ ultramegaok_demo (void* vnc)
 		}
 
 		if (NCKey::IsMouse (ni.id)) {
-			// FIXME
+			handle_mouse (nc, &ni);
 		} else {
 			if (ni.id == 'q') {
 				interrupt_demo ();

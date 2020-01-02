@@ -30,7 +30,7 @@ bool box_demo (NotCurses &nc)
 	}
 
 	struct timespec start, now;
-	clock_gettime (CLOCK_MONOTONIC_RAW, &start);
+	clock_gettime (CLOCK_MONOTONIC, &start);
 
 	int zbonus = 40;
 	int zbonusdelta = 20;
@@ -43,7 +43,7 @@ bool box_demo (NotCurses &nc)
 	int ytargbase = (ylen - targy) / 2;
 	Cell c(' ');
 	c.set_bg_default ();
-	n->set_default (c);
+	n->set_base (c);
 	n->release (c);
 
 	n->set_fg_rgb (180, 40, 180);
@@ -111,7 +111,7 @@ bool box_demo (NotCurses &nc)
 		}
 
 		nanosleep (&iterdelay, nullptr);
-		clock_gettime (CLOCK_MONOTONIC_RAW, &now);
+		clock_gettime (CLOCK_MONOTONIC, &now);
 
 		if ((zbonus += zbonusdelta > 255) || zbonus < 0) {
 			zbonusdelta = -zbonusdelta;

@@ -22,12 +22,26 @@ namespace ncpp
 	public:
 		explicit Plane (int rows, int cols, int yoff, int xoff, void *opaque = nullptr) noexcept
 		{
-			plane = notcurses_newplane (
+			plane = ncplane_new (
 				get_notcurses (),
 				rows,
 				cols,
 				yoff,
 				xoff,
+				opaque
+			);
+
+			map_plane (plane, this);
+		}
+
+		explicit Plane (Plane *n, int rows, int cols, int yoff, NCAlign align, void *opaque = nullptr) noexcept
+		{
+			plane = ncplane_aligned (
+				n->plane,
+				rows,
+				cols,
+				yoff,
+				static_cast<ncalign_e>(align),
 				opaque
 			);
 
@@ -77,29 +91,34 @@ namespace ncpp
 			) == 0;
 		}
 
-		bool fadeout (timespec *ts) const noexcept
+		bool fadeout (timespec *ts, fadecb fader = nullptr) const noexcept
 		{
-			return fadeout (static_cast<const timespec*>(ts));
+			return fadeout (static_cast<const timespec*>(ts), fader);
 		}
 
-		bool fadeout (const timespec *ts) const noexcept
+		bool fadeout (const timespec *ts, fadecb fader = nullptr) const noexcept
 		{
-			return ncplane_fadeout (plane, ts) != -1;
+			return ncplane_fadeout (plane, ts, fader) != -1;
 		}
 
-		bool fadein (timespec *ts) const noexcept
+		bool fadein (timespec *ts, fadecb fader = nullptr) const noexcept
 		{
-			return fadein (static_cast<const timespec*>(ts));
+			return fadein (static_cast<const timespec*>(ts), fader);
 		}
 
-		bool fadein (const timespec *ts) const noexcept
+		bool fadein (const timespec *ts, fadecb fader = nullptr) const noexcept
 		{
-			return ncplane_fadein (plane, ts) != -1;
+			return ncplane_fadein (plane, ts, fader) != -1;
 		}
 
 		void erase () const noexcept
 		{
 			ncplane_erase (plane);
+		}
+
+		int get_align (NCAlign align, int c) const noexcept
+		{
+			return ncplane_align (plane, static_cast<ncalign_e>(align), c);
 		}
 
 		void get_dim (int *rows, int *cols) const noexcept
@@ -132,9 +151,51 @@ namespace ncpp
 			return ncplane_move_below (plane, below.plane) != -1;
 		}
 
+		bool move_below (Plane *below) const noexcept
+		{
+			if (below == nullptr)
+				return false;
+
+			return move_below (*below);
+		}
+
+		bool move_below_unsafe (Plane &below) const noexcept
+		{
+			return ncplane_move_below_unsafe (plane, below.plane) != -1;
+		}
+
+		bool move_below_unsafe (Plane *below) const noexcept
+		{
+			if (below == nullptr)
+				return false;
+
+			return move_below_unsafe (*below);
+		}
+
 		bool move_above (Plane &above) const noexcept
 		{
 			return ncplane_move_above (plane, above.plane) != -1;
+		}
+
+		bool move_above (Plane *above) const noexcept
+		{
+			if (above == nullptr)
+				return false;
+
+			return move_above (*above);
+		}
+
+		bool move_above_unsafe (Plane &above) const noexcept
+		{
+			return ncplane_move_above_unsafe (plane, above.plane) != -1;
+		}
+
+		bool move_above_unsafe (Plane *above) const noexcept
+		{
+			if (above == nullptr)
+				return false;
+
+			return move_above (*above);
 		}
 
 		bool cursor_move (int y, int x) const noexcept
@@ -354,37 +415,37 @@ namespace ncpp
 
 		uint64_t get_channels () const noexcept
 		{
-			return ncplane_get_channels (plane);
+			return ncplane_channels (plane);
 		}
 
 		uint32_t get_attr () const noexcept
 		{
-			return ncplane_get_attr (plane);
+			return ncplane_attr (plane);
 		}
 
 		unsigned get_bchannel () const noexcept
 		{
-			return ncplane_get_bchannel (plane);
+			return ncplane_bchannel (plane);
 		}
 
 		unsigned get_fchannel () const noexcept
 		{
-			return ncplane_get_fchannel (plane);
+			return ncplane_fchannel (plane);
 		}
 
 		unsigned get_fg () const noexcept
 		{
-			return ncplane_get_fg (plane);
+			return ncplane_fg (plane);
 		}
 
 		unsigned get_bg () const noexcept
 		{
-			return ncplane_get_bg (plane);
+			return ncplane_bg (plane);
 		}
 
 		unsigned get_fg_alpha () const noexcept
 		{
-			return ncplane_get_fg_alpha (plane);
+			return ncplane_fg_alpha (plane);
 		}
 
 		bool set_fg_alpha (int alpha) const noexcept
@@ -394,7 +455,7 @@ namespace ncpp
 
 		unsigned get_bg_alpha () const noexcept
 		{
-			return ncplane_get_bg_alpha (plane);
+			return ncplane_bg_alpha (plane);
 		}
 
 		bool set_bg_alpha (int alpha) const noexcept
@@ -404,7 +465,7 @@ namespace ncpp
 
 		unsigned get_fg_rgb (unsigned *r, unsigned *g, unsigned *b) const noexcept
 		{
-			return ncplane_get_fg_rgb (plane, r, g, b);
+			return ncplane_fg_rgb (plane, r, g, b);
 		}
 
 		bool set_fg_rgb (unsigned r, unsigned g, unsigned b) const noexcept
@@ -424,7 +485,7 @@ namespace ncpp
 
 		unsigned get_bg_rgb (unsigned *r, unsigned *g, unsigned *b) const noexcept
 		{
-			return ncplane_get_bg_rgb (plane, r, g, b);
+			return ncplane_bg_rgb (plane, r, g, b);
 		}
 
 		bool set_bg_rgb (unsigned r, unsigned g, unsigned b) const noexcept
@@ -462,14 +523,14 @@ namespace ncpp
 			return map_plane (ncplane_below (plane));
 		}
 
-		bool set_default (Cell &c) const noexcept
+		bool set_base (Cell &c) const noexcept
 		{
-			return ncplane_set_default (plane, c) >= 0;
+			return ncplane_set_base (plane, c) >= 0;
 		}
 
-		bool get_default (Cell &c) const noexcept
+		bool get_base (Cell &c) const noexcept
 		{
-			return ncplane_default (plane, c) >= 0;
+			return ncplane_base (plane, c) >= 0;
 		}
 
 		bool at_cursor (Cell &c) const noexcept
@@ -477,9 +538,9 @@ namespace ncpp
 			return ncplane_at_cursor (plane, c) >= 0;
 		}
 
-		bool at_yx (int y, int x, Cell &c) const noexcept
+		int get_at (int y, int x, Cell &c) const noexcept
 		{
-			return ncplane_at_yx (plane, y, x, c) >= 0;
+			return ncplane_at_yx (plane, y, x, c);
 		}
 
 		void* set_userptr (void *opaque) const noexcept
@@ -535,6 +596,17 @@ namespace ncpp
 		void release (Cell &cell) const noexcept
 		{
 			cell_release (plane, cell);
+		}
+
+		// Upstream call doesn't take ncplane* but we put it here for parity with has_no_background below
+		bool has_no_foreground (Cell &cell) const noexcept
+		{
+			return cell.has_no_foreground ();
+		}
+
+		bool has_no_background (Cell &cell) const noexcept
+		{
+			return cell_nobackground_p (plane, cell);
 		}
 
 		const char* get_extended_gcluster (Cell &cell) const noexcept

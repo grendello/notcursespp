@@ -3,6 +3,7 @@ set(DEMO_SOURCES
   demo.cc
   eagle.cc
   grid.cc
+  hud.cc
   input.cc
   luigi.cc
   maxcolor.cc

@@ -62,9 +62,9 @@ namespace ncpp
 			return ncvisual_render (visual, begy, begx, leny, lenx) != -1;
 		}
 
-		int stream (int *averr, streamcb streamer) const noexcept
+		int stream (int *averr, streamcb streamer, void *curry = nullptr) const noexcept
 		{
-			return ncvisual_stream (get_notcurses (), visual, averr, streamer);
+			return ncvisual_stream (get_notcurses (), visual, averr, streamer, curry);
 		}
 
 		Plane* get_plane () const noexcept;

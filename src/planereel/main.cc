@@ -35,7 +35,7 @@ int tabletfxn (tablet* tb, int begx, int begy, int maxx, int maxy, bool cliptop)
 	p->erase ();
 	Cell c (' ');
 	c.set_bg ((((uintptr_t)t) % 0x1000000) + cliptop + begx + maxx);
-	p->set_default (c);
+	p->set_base (c);
 	p->release (c);
 
 	return tctx->getLines () > maxy - begy ? maxy - begy : tctx->getLines ();
@@ -125,7 +125,7 @@ void parse_args (int argc, char** argv, struct notcurses_options* opts, struct p
 		}
 	}
 
-	opts->suppress_bannner = true;
+	opts->suppress_banner = true;
 	opts->clear_screen_start = true;
 }
 

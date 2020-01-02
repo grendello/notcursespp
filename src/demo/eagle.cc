@@ -1,7 +1,6 @@
 #include <config.hh>
 
 #include <memory>
-#include <libavutil/frame.h>
 
 #include <ncpp/NotCurses.hh>
 #include <ncpp/Visual.hh>
@@ -51,7 +50,7 @@ outzoomed_map (NotCurses &nc, const char* map)
 		return nullptr;
 	}
 
-	if (!nc.render ()) {
+	if (!demo_render (nc)) {
 		return nullptr;
 	}
 
@@ -77,14 +76,17 @@ zoom_map (NotCurses &nc, const char* map)
 		return nullptr;
 	}
 
+	int vheight;
+	int vwidth;
+	ncv->get_plane ()->get_dim (&vheight, &vwidth);
+
 	// we start at the lower left corner of the outzoomed map
 	int truex, truey; // dimensions of true display
 	nc.get_term_dim (&truey, &truex);
 
-	int vwidth = frame->width;
 	int vx = vwidth;
-	int vheight = frame->height; // dimensions of unzoomed map
-	int vy = vheight / 2;
+	vheight /= 2;
+	int vy = vheight;
 	int zoomy = truey;
 	int zoomx = truex;
 	std::shared_ptr<Plane> zncp;
@@ -96,6 +98,7 @@ zoom_map (NotCurses &nc, const char* map)
 	} else if (truex > truey * 2) {
 		++deltx;
 	}
+
 	while (zoomy < vy && zoomx < vx) {
 		zncp.reset ();
 		zoomy += delty;
@@ -114,7 +117,7 @@ zoom_map (NotCurses &nc, const char* map)
 			return nullptr;
 		}
 
-		if (!nc.render ()) {
+		if (!demo_render (nc)) {
 			return nullptr;
 		}
 	}
@@ -128,14 +131,12 @@ draw_eagle (std::shared_ptr<Plane> n, const char* sprite)
 	Cell bgc;
 	bgc.set_fg_alpha (Cell::AlphaTransparent);
 	bgc.set_bg_alpha (Cell::AlphaTransparent);
-	n->set_default (bgc);
+	n->set_base (bgc);
 	n->release (bgc);
 
 	size_t s;
 	int sbytes;
 	uint64_t channels = 0;
-	// optimization so we can elide more color changes, see README's "#perf"
-	channels_set_bg_rgb (&channels, 0x00, 0x00, 0x00);
 	n->cursor_move (0, 0);
 	for (s = 0 ; sprite[s] ; ++s) {
 		switch (sprite[s]) {
@@ -198,7 +199,7 @@ eagles (NotCurses &nc)
 	int eaglesmoved;
 	do{
 		eaglesmoved = 0;
-		nc.render ();
+		demo_render (nc);
 
 		for (size_t i = 0 ; i < sizeof(e) / sizeof(*e) ; ++i) {
 			if (e[i].xoff >= truex) {

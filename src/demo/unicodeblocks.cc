@@ -20,12 +20,6 @@ constexpr int BLOCKSIZE = 512; // show this many per page
 constexpr int CHUNKSIZE = 32;  // show this many per line
 
 static bool
-fade_block (std::shared_ptr<Plane> nn, const struct timespec* subdelay)
-{
-	return nn->fadein (subdelay);
-}
-
-static bool
 draw_block (std::shared_ptr<Plane> nn, uint32_t blockstart)
 {
 	Cell ul, ur;
@@ -46,7 +40,9 @@ draw_block (std::shared_ptr<Plane> nn, uint32_t blockstart)
 	hl.set_bg_rgb (0, 0, 0);
 	vl.set_bg_rgb (0, 0, 0);
 
-	if (!nn->box_sized (ul, ur, ll, lr, hl, vl, BLOCKSIZE / CHUNKSIZE + 2, (CHUNKSIZE * 2) + 2, 0)) {
+	int dimx, dimy;
+	nn->get_dim (&dimy, &dimx);
+	if (!nn->box_sized (ul, ur, ll, lr, hl, vl, dimy, dimx, 0)) {
 		return -false;
 	}
 	nn->release (ul); nn->release (ur); nn->release (hl);
@@ -78,31 +74,17 @@ draw_block (std::shared_ptr<Plane> nn, uint32_t blockstart)
 				}
 				utf8arr[bwc] = '\0';
 			} else { // don't dump non-printing codepoints
-				utf8arr[0] = ' ';
-				utf8arr[1] = '\xe2';
-				utf8arr[2] = '\x80';
-				utf8arr[3] = '\x8e';
-				utf8arr[4] = '\0';
-			}
-
-			if (nn->load (c, utf8arr) < 0) { // FIXME check full len was eaten?
-				return false;
+				strcpy (utf8arr, " ");
 			}
 			c.set_fg_rgb (0xad + z * 2, 0xd8, 0xe6 - z * 2);
 			c.set_bg_rgb (8 * chunk, 8 * chunk + z, 8 * chunk);
 
-			if (nn->putc (c) < 0) {
+			if (nn->putstr (utf8arr) < 0) {
 				return false;
 			}
 
 			if (wcwidth (w[0]) < 2 || !iswprint (w[0])) {
-				if (nn->load (c, " ") < 0) {
-					return false;
-				}
-
-				if(nn->putc (c) < 0) {
-					return false;
-				}
+				nn->putc (' ');
 			}
 		}
 		delete[] utf8arr;
@@ -195,7 +177,7 @@ bool unicodeblocks_demo (NotCurses &nc)
 	// we don't want a full delay period for each one, urk...or do we?
 	struct timespec subdelay;
 	uint64_t nstotal = timespec_to_ns (&demodelay);
-	ns_to_timespec (nstotal / 5, &subdelay);
+	ns_to_timespec (nstotal / 3, &subdelay);
 
 	for (sindex = 0 ; sindex < sizeof(blocks) / sizeof(*blocks) ; ++sindex) {
 		n->set_bg_rgb (0, 0, 0);
@@ -212,6 +194,10 @@ bool unicodeblocks_demo (NotCurses &nc)
 		auto nn = std::make_shared<Plane>(BLOCKSIZE / CHUNKSIZE + 2, (CHUNKSIZE * 2) + 2, 3, xstart);
 		if (nn == nullptr || !*nn) {
 			return false;
+		}
+
+		if (hud != nullptr) {
+			nn->move_below_unsafe (hud);
 		}
 
 		if (!draw_block (nn, blockstart)) {
@@ -231,9 +217,8 @@ bool unicodeblocks_demo (NotCurses &nc)
 			return false;
 		}
 
-		if (!fade_block (nn, &subdelay)) {
-			return false;
-		}
+		nc.render ();
+		nanosleep (&subdelay, nullptr);
 
 		// for a 32-bit wchar_t, we would want up through 24 bits of block ID. but
 		// really, the vast majority of space is unused.

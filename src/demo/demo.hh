@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <limits.h>
 #include <ncpp/NotCurses.hh>
+#include <ncpp/Plane.hh>
 
 #ifdef __cplusplus
 extern "C" {
@@ -59,6 +60,7 @@ demo_getc_blocking (ncinput* ni)
 }
 /*----------------------------- end demo input API -------------------------*/
 
+/*-------------------------------time helpers----------------------------*/
 int timespec_subtract(struct timespec *result, const struct timespec *time1,
                       struct timespec *time0);
 
@@ -100,6 +102,41 @@ timespec_mul(const struct timespec* ts, unsigned multiplier, struct timespec* pr
   product->tv_nsec = ns % GIG;
   product->tv_sec = ns / GIG;
 }
+/*-------------------------------time helpers----------------------------*/
+
+/*----------------------------------HUD----------------------------------*/
+extern ncpp::Plane* hud;
+struct ncpp::Plane* hud_create (ncpp::NotCurses &nc);
+bool hud_destroy (void);
+
+// let the HUD know about an upcoming demo
+bool hud_schedule (const char* demoname);
+
+// demos should not call notcurses_render() themselves, but instead call
+// demo_render(), which will ensure the HUD stays on the top of the z-stack.
+bool demo_render (ncpp::NotCurses &nc);
+
+int demo_fader (struct notcurses *nc, struct ncplane *ncp);
+
+// grab the hud with the mouse
+bool hud_grab (int y, int x);
+
+// release the hud
+bool hud_release (void);
+
+typedef struct demoresult {
+	char selector;
+	struct ncstats stats;
+	uint64_t timens;
+	bool failed;
+} demoresult;
+
+// let the HUD know that a demo has completed, reporting the stats
+bool hud_completion_notify (const demoresult* result);
+
+// HUD retrieves results on demand from core
+const demoresult* demoresult_lookup (int idx);
+/*----------------------------------HUD----------------------------------*/
 
 #ifdef __cplusplus
 }

@@ -12,9 +12,9 @@ static void
 grow_rgb (uint32_t* rgb)
 {
 	// FIXME: use proper channels API wrapper
-	int r = channel_get_r(*rgb);
-	int g = channel_get_g(*rgb);
-	int b = channel_get_b(*rgb);
+	int r = channel_r (*rgb);
+	int g = channel_g (*rgb);
+	int b = channel_b (*rgb);
 	int delta = (*rgb & 0x80000000ul) ? -1 : 1;
 	if (b == r) {
 		b += delta;
@@ -34,6 +34,29 @@ grow_rgb (uint32_t* rgb)
 	*rgb = (*rgb & 0xff000000ul) | (r * 65536 + g * 256 + b);
 }
 
+static std::shared_ptr<Plane>
+legend (NotCurses &nc, const char* msg)
+{
+	int dimx, dimy;
+	nc.get_term_dim (&dimy, &dimx);
+
+	// FIXME replace with notcurses_newplane_aligned()
+	auto n = std::make_shared<Plane> (3, strlen(msg) + 2, dimy - 4, (dimx - ((strlen(msg) + 2))) / 2);
+
+	Cell c;
+	c.set_fg_rgb (0, 0, 0); // darken surrounding characters by half
+	c.set_fg_alpha (Cell::AlphaBlend);
+	c.set_bg_alpha (Cell::AlphaTransparent); // don't touch background
+	n->set_base (c);
+	n->set_fg (0xd78700);
+	n->set_bg (0);
+	if (n->putstr (1, 1, msg) < 0) {
+		return nullptr;
+	}
+
+	return n;
+}
+
 static bool
 slideitslideit (NotCurses &nc, std::shared_ptr<Plane> n, uint64_t deadline, int *direction)
 {
@@ -49,7 +72,7 @@ slideitslideit (NotCurses &nc, std::shared_ptr<Plane> n, uint64_t deadline, int 
 	struct timespec cur;
 
 	do{
-		if (!nc.render ()) {
+		if (!demo_render (nc)) {
 			return false;
 		}
 
@@ -110,90 +133,125 @@ slidepanel (NotCurses &nc)
 
 	int ny = dimy / 4;
 	int nx = dimx / 3;
-	int yoff = random() % (dimy - ny - 2) + 1; // don't start atop a border
-	int xoff = random() % (dimx - nx - 2) + 1;
+	int yoff = random () % (dimy - ny - 2) + 1; // don't start atop a border
+	int xoff = random () % (dimx - nx - 2) + 1;
 
-	// First we just create a plane with no styling. By default, this will be the
-	// default foreground color -- unused -- and the default background color,
-	// both fully opaque. Thus we'll get a square of the background color (which
-	// might be "transparent", i.e. a copy of the underlying desktop).
+	// First we just create a plane with no styling and no glyphs.
 	auto n = std::make_shared<Plane> (ny, nx, yoff, xoff);
-	struct timespec cur;
+
+	// Zero-initialized channels use the default color, opaquely. Since we have
+	// no glyph, we should show underlying glyphs in the default colors. The
+	// background default might be transparent, at the window level (i.e. a copy
+	// of the underlying desktop).
 	Cell c (' ');
 
-	n->set_default (c);
+	struct timespec cur;
+	n->set_base (c);
 	clock_gettime (CLOCK_MONOTONIC, &cur);
 
 	uint64_t deadlinens = timespec_to_ns (&cur) + DELAYSCALE * timespec_to_ns (&demodelay);
 	int direction = random () % 4;
 
+	std::shared_ptr<Plane> l = legend (nc, "default background, all opaque, whitespace glyph");
 	if (!slideitslideit (nc, n, deadlinens, &direction)) {
 		return false;
 	}
+	l.reset ();
 
-	// Next, we set our foreground transparent, allowing the characters
-	// underneath to be seen. Our background remains opaque.
-	c.init ();
 	n->load (c, '\0');
+	n->set_base (c);
+	clock_gettime (CLOCK_MONOTONIC, &cur);
+	deadlinens = timespec_to_ns (&cur) + DELAYSCALE * timespec_to_ns (&demodelay);
+	l = legend (nc, "default background, all opaque, no glyph");
+	if (!slideitslideit (nc, n, deadlinens, &direction)) {
+		return false;
+	}
+	l.reset ();
+
+	// Next, we set our foreground transparent, allowing characters underneath to
+	// be seen in their natural colors. Our background remains opaque+default.
 	c.set_fg_alpha (Cell::AlphaTransparent);
-	c.set_bg_alpha (Cell::AlphaOpaque);
-	n->set_default (c);
-	n->release (c);
+	n->set_base (c);
 
 	clock_gettime (CLOCK_MONOTONIC, &cur);
+	deadlinens = timespec_to_ns (&cur) + DELAYSCALE * timespec_to_ns (&demodelay);
+	l = legend(nc, "default background, fg transparent, no glyph");
+	if (!slideitslideit (nc, n, deadlinens, &direction)) {
+		return false;
+	}
+	l.reset ();
+
+	// Set the foreground color, setting it to blend. We should get the underlying
+	// glyphs in a blended color, with the default background color.
+	c.set_fg (0x80c080);
+	c.set_fg_alpha (Cell::AlphaBlend);
+	n->set_base (c);
+	clock_gettime (CLOCK_MONOTONIC, &cur);
+	l = legend (nc, "default background, fg blended, no glyph");
 	deadlinens = timespec_to_ns (&cur) + DELAYSCALE * timespec_to_ns (&demodelay);
 	if (!slideitslideit (nc, n, deadlinens, &direction)) {
 		return false;
 	}
+	l.reset ();
+
+	// Opaque foreground color. This produces underlying glyphs in the specified,
+	// fixed color, with the default background color.
+	c.set_fg (0x80c080);
+	c.set_fg_alpha (Cell::AlphaOpaque);
+	n->set_base (c);
+	clock_gettime (CLOCK_MONOTONIC, &cur);
+	l = legend (nc, "default background, fg colored opaque, no glyph");
+	deadlinens = timespec_to_ns (&cur) + DELAYSCALE * timespec_to_ns (&demodelay);
+	if (!slideitslideit (nc, n, deadlinens, &direction)) {
+		return false;
+	}
+	l.reset ();
 
 	// Now we replace the characters with X's, colored as underneath us.
 	// Our background color remains opaque default.
-	c.init ();
 	n->load (c, 'X');
-	c.set_fg (0xc000c0);
+	c.set_fg_default ();
 	c.set_fg_alpha (Cell::AlphaTransparent);
 	c.set_bg_alpha (Cell::AlphaOpaque);
-	n->set_default (c);
-	n->release (c);
+	n->set_base (c);
 
 	clock_gettime (CLOCK_MONOTONIC, &cur);
+	l = legend (nc, "default colors, fg transparent, print glyph");
 	deadlinens = timespec_to_ns (&cur) + DELAYSCALE * timespec_to_ns (&demodelay);
 	if (!slideitslideit (nc, n, deadlinens, &direction)) {
 		return false;
 	}
+	l.reset ();
 
 	// Now we replace the characters with X's, but draw the foreground and
 	// background color from below us.
-	c.init ();
-	n->load (c, 'X');
 	c.set_fg_alpha (Cell::AlphaTransparent);
 	c.set_bg_alpha (Cell::AlphaTransparent);
-	c.set_bg (0);
-	n->set_default (c);
-	n->release (c);
+	n->set_base (c);
 
 	clock_gettime (CLOCK_MONOTONIC, &cur);
+	l = legend (nc, "all transparent, print glyph");
 	deadlinens = timespec_to_ns (&cur) + DELAYSCALE * timespec_to_ns (&demodelay);
 	if (!slideitslideit (nc, n, deadlinens, &direction)) {
 		return false;
 	}
+	l.reset ();
 
 	// Finally, we populate the plane for the first time with non-transparent
 	// characters. We blend, however, to show the underlying color in our glyphs.
-	c.init ();
-	n->load (c, 'X');
 	c.set_fg_alpha (Cell::AlphaBlend);
 	c.set_bg_alpha (Cell::AlphaBlend);
-	c.set_fg (0xc000c0);
-	c.set_bg (0x00c000);
-	n->set_default (c);
-	n->release (c);
+	c.set_fg (0x80c080);
+	c.set_bg (0x204080);
+	n->set_base (c);
 
 	clock_gettime (CLOCK_MONOTONIC, &cur);
+	l = legend (nc, "all blended, print glyph");
 	deadlinens = timespec_to_ns (&cur) + DELAYSCALE * timespec_to_ns (&demodelay);
 	if (!slideitslideit (nc, n, deadlinens, &direction)) {
 		return false;
 	}
+	l.reset ();
 
 	return true;
 }
@@ -236,9 +294,11 @@ bool maxcolor_demo (NotCurses &nc)
 		}
 	}
 
-	if (!nc.render ()) {
+	std::shared_ptr<Plane> l = legend (nc, "what say we explore transparency together?");
+	if (!demo_render (nc)) {
 		return false;
 	}
+	l.reset ();
 
 	nanosleep (&demodelay, nullptr);
 

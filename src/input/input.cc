@@ -119,7 +119,7 @@ dim_rows (Plane* n)
 	Cell c;
 	for (y = 2 ; y < dimy ; ++y) {
 		for (x = 0 ; x < dimx ; ++x) {
-			if (!n->at_yx (y, x, c)) {
+			if (!n->get_at (y, x, c)) {
 				n->release (c);
 				return false;
 			}
@@ -198,15 +198,18 @@ int main (void)
 			break;
 		}
 
+		n->set_fg_rgb (0xd0, 0xd0, 0xd0);
+		n->printf ("%c%c%c ", ni.alt ? 'A' : 'a', ni.ctrl ? 'C' : 'c', ni.shift ? 'S' : 's');
+
 		if (r < 0x80) {
 			n->set_fg_rgb (128, 250, 64);
-			if (!n->printf ("Got ASCII: [0x%02x (%03d)] '%lc'", r, r, iswprint(r) ? r : printutf8(r))) {
+			if (!n->printf ("ASCII: [0x%02x (%03d)] '%lc'", r, r, iswprint(r) ? r : printutf8(r))) {
 				break;
 			}
 		} else {
-			if (wchar_supppuab_p (r)) {
+			if (nckey_supppuab_p (r)) {
 				n->set_fg_rgb (250, 64, 128);
-				if (!n->printf ("Got special key: [0x%02x (%02d)] '%s'", r, r, nckeystr(r))) {
+				if (!n->printf ("Special: [0x%02x (%02d)] '%s'", r, r, nckeystr(r))) {
 					break;
 				}
 				if (NCKey::IsMouse (r)) {
@@ -216,7 +219,7 @@ int main (void)
 				}
 			} else {
 				n->set_fg_rgb (64, 128, 250);
-				n->printf ("Got UTF-8: [0x%08x] '%lc'", r, r);
+				n->printf ("Unicode: [0x%08x] '%lc'", r, r);
 			}
 		}
 
