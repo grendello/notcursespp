@@ -48,7 +48,7 @@ namespace ncpp
 		explicit Plane (Plane *n, int rows, int cols, int yoff, NCAlign align, void *opaque = nullptr)
 		{
 			if (n == nullptr)
-				throw std::invalid_argument ("'n' must not be null");
+				return;
 
 			plane = create_plane (*n, rows, cols, yoff, align, opaque);
 		}
@@ -56,7 +56,7 @@ namespace ncpp
 		explicit Plane (Plane const* n, int rows, int cols, int yoff, NCAlign align, void *opaque = nullptr)
 		{
 			if (n == nullptr)
-				throw std::invalid_argument ("'n' must not be null");
+				return;
 
 			plane = create_plane (const_cast<Plane&>(*n), rows, cols, yoff, align, opaque);
 		}
@@ -235,7 +235,7 @@ namespace ncpp
 		int putc (const Cell *c) const
 		{
 			if (c == nullptr)
-				throw std::invalid_argument ("'c' must not be null");
+				return -1;
 
 			return putc (*c);
 		}
@@ -568,7 +568,7 @@ namespace ncpp
 		bool at_cursor (Cell *c) const
 		{
 			if (c == nullptr)
-				throw std::invalid_argument ("'c' must not be null");
+				return false;
 
 			return at_cursor (*c);
 		}
@@ -581,7 +581,7 @@ namespace ncpp
 		int get_at (int y, int x, Cell *c) const
 		{
 			if (c == nullptr)
-				throw std::invalid_argument ("'c' must not be null");
+				return -1;
 
 			return get_at (y, x, *c);
 		}
@@ -654,7 +654,7 @@ namespace ncpp
 		int duplicate (Cell &target, Cell *source) const
 		{
 			if (source == nullptr)
-				throw std::invalid_argument ("'source' must not be null");
+				return -1;
 
 			return duplicate (target, *source);
 		}
@@ -662,29 +662,23 @@ namespace ncpp
 		int duplicate (Cell &target, Cell const* source) const
 		{
 			if (source == nullptr)
-				throw std::invalid_argument ("'source' must not be null");
+				return -1;
 
 			return duplicate (target, *source);
 		}
 
 		int duplicate (Cell *target, Cell *source) const
 		{
-			if (target == nullptr)
-				throw std::invalid_argument ("'target' must not be null");
-
-			if (source == nullptr)
-				throw std::invalid_argument ("'source' must not be null");
+			if (target == nullptr || source == nullptr)
+				return -1;
 
 			return duplicate (*target, *source);
 		}
 
 		int duplicate (Cell *target, Cell const* source) const
 		{
-			if (target == nullptr)
-				throw std::invalid_argument ("'target' must not be null");
-
-			if (source == nullptr)
-				throw std::invalid_argument ("'source' must not be null");
+			if (target == nullptr || source == nullptr)
+				return -1;
 
 			return duplicate (*target, *source);
 		}
@@ -692,7 +686,7 @@ namespace ncpp
 		int duplicate (Cell *target, Cell &source) const
 		{
 			if (target == nullptr)
-				throw std::invalid_argument ("'target' must not be null");
+				return -1;
 
 			return duplicate (*target, source);
 		}
@@ -700,7 +694,7 @@ namespace ncpp
 		int duplicate (Cell *target, Cell const& source) const
 		{
 			if (target == nullptr)
-				throw std::invalid_argument ("'target' must not be null");
+				return -1;
 
 			return duplicate (*target, source);
 		}

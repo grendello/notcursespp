@@ -45,7 +45,7 @@ set(PACKAGE_VERSION_MINOR "${NCPP_VERSION_MINOR}")
 set(PACKAGE_VERSION_MICRO "${NCPP_VERSION_MICRO}")
 
 option(OPTIMIZE_NATIVE "Optimize for the native (host) compiler" ON)
-option(USE_LTO "Use Link-Time Optimizations if the compiler supports them" ON)
+option(USE_LTO "Use Link-Time Optimizations if the compiler supports them" OFF)
 option(USE_LLD "Use the LLVM lld linker, if found" OFF)
 option(ENABLE_PROFILING "Support profiling of the generated code" OFF)
 option(COMPILER_DIAG_COLOR "Show compiler diagnostics/errors in color" ON)
@@ -99,9 +99,11 @@ set(TEST_COMPILER_ARGS
   g
   fvisibility=hidden
   fno-rtti
+#  frtti
   mpopcnt
   fpic
   pthread
+  fno-exceptions
   )
 
 if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
