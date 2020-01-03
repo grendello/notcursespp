@@ -31,9 +31,9 @@ namespace ncpp
 		}
 
 		Plane* get_plane () const noexcept;
+		static Tablet* map_tablet (tablet *t) noexcept;
 
 	protected:
-		static Tablet* map_tablet (tablet *t) noexcept;
 		static void unmap_tablet (Tablet *p) noexcept;
 
 		tablet* get_tablet () const noexcept

@@ -18,10 +18,7 @@ namespace ncpp
 
 		~PanelReel ()
 		{
-			if (reel == nullptr)
-				return;
-
-			panelreel_destroy (reel);
+			destroy ();
 		}
 
 	protected:
@@ -44,6 +41,17 @@ namespace ncpp
 		operator panelreel const* () const noexcept
 		{
 			return reel;
+		}
+
+		bool destroy () noexcept
+		{
+			if (reel == nullptr)
+				return true;
+
+			bool ret = panelreel_destroy (reel) == 0;
+			reel = nullptr;
+
+			return ret;
 		}
 
 		// TODO: add an overload using callback that takes Tablet instance instead of struct tablet

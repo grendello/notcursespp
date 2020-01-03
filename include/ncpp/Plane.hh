@@ -720,13 +720,14 @@ namespace ncpp
 			return cell_extended_gcluster (plane, cell);
 		}
 
+		static Plane* map_plane (ncplane *ncp, Plane *associated_plane = nullptr) noexcept;
+
 	protected:
 		explicit Plane (ncplane *plane, bool is_stdplane) noexcept
 			: plane (plane),
 			  is_stdplane (is_stdplane)
 		{}
 
-		static Plane* map_plane (ncplane *ncp, Plane *associated_plane = nullptr) noexcept;
 		static void unmap_plane (Plane *p) noexcept;
 
 	private:
