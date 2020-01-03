@@ -81,47 +81,16 @@ surrounding_cells (Plane *n, Cell *cells, int y, int x)
 	n->get_at (y - 1, x - 1, cells[0]);
 	n->get_at (y - 1, x, cells[1]);
 	n->get_at (y - 1, x + 1, cells[2]);
-
-	// FIXME rewrite all these using ncplane_at_yx()
-	if (n->cursor_move (y, x - 1)) {
-		n->at_cursor (cells[7]);
-	}
-
-	if (n->cursor_move (y, x + 1)) {
-		n->at_cursor (cells[3]);
-	}
-
-	if (n->cursor_move (y + 1, x - 1)) {
-		n->at_cursor (cells[6]);
-	}
-
-	if (n->cursor_move (y + 1, x)) {
-		n->at_cursor (cells[5]);
-	}
-
-	if (n->cursor_move (y + 1, x + 1)) {
-		n->at_cursor (cells[4]);
-	}
-
-	if (n->cursor_move (y - 2, x)) {
-		n->at_cursor (cells[8]);
-	}
-
-	if (n->cursor_move (y + 2, x)) {
-		n->at_cursor (cells[9]);
-	}
-
-	if (n->cursor_move (y, x - 2)) {
-		n->at_cursor (cells[10]);
-	}
-
-	if (n->cursor_move (y, x + 2)) {
-		n->at_cursor (cells[11]);
-	}
-
-	if (n->cursor_move (y, x)) {
-		n->at_cursor (cells[12]);
-	}
+	n->get_at (y, x + 1, cells[3]);
+	n->get_at (y + 1, x + 1, cells[4]);
+	n->get_at (y + 1, x, cells[5]);
+	n->get_at (y + 1, x - 1, cells[6]);
+	n->get_at (y, x - 1, cells[7]);
+	n->get_at (y - 2, x, cells[8]);
+	n->get_at (y + 2, x, cells[9]);
+	n->get_at (y, x - 2, cells[10]);
+	n->get_at (y, x + 2, cells[11]);
+	n->get_at (y, x, cells[12]);
 }
 
 static bool
@@ -270,6 +239,16 @@ snakey (NotCurses &nc, snake* s, int dimy, int dimx)
 	n->release (c);
 
 	return true;
+}
+
+#include <cxxabi.h>
+
+using namespace __cxxabiv1;
+
+char* util_demangle(std::string to_demangle)
+{
+    int status = 0;
+    return __cxxabiv1::__cxa_demangle(to_demangle.c_str(), NULL, NULL, &status);
 }
 
 // each snake wanders around aimlessly, prohibited from entering the summary

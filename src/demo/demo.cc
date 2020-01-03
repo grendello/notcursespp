@@ -16,6 +16,7 @@
 #include "demo.hh"
 
 #include <ncpp/NotCurses.hh>
+#include <ncpp/NCLogLevel.hh>
 
 using namespace ncpp;
 
@@ -27,7 +28,7 @@ static int democount;
 static demoresult* results;
 static std::atomic_bool interrupted (false);
 
-static constexpr char DEFAULT_DEMO[] = "ixemlubgswvpo";
+static constexpr char DEFAULT_DEMO[] = "ixetlubgswvpo";
 static char datadir[PATH_MAX] = NOTCURSES_DATA_DIR;
 
 void interrupt_demo (void)
@@ -81,9 +82,10 @@ static void
 usage (const char* exe, int status)
 {
 	std::ostream &out = status == EXIT_SUCCESS ? std::cout : std::cerr;
-	out << "usage: " << exe << " [ -hHVkc ] [ -d mult ] [ -f renderfile ] demospec" << std::endl;
+	out << "usage: " << exe << " [ -hHVkc ] [ -l loglevel ] [ -d mult ] [ -f renderfile ] demospec" << std::endl;
 	out << " -h: this message" << std::endl;
 	out << " -V: print program name and version" << std::endl;
+	out << " -l: logging level (" << NCLogLevel::Silent << ": silent.." << NCLogLevel::Trace << ": manic)" << std::endl;
 	out << " -H: deploy the HUD" << std::endl;
 	out << " -k: keep screen; do not switch to alternate" << std::endl;
 	out << " -d: delay multiplier (float)" << std::endl;
@@ -95,10 +97,10 @@ usage (const char* exe, int status)
 	out << " g: run grid" << std::endl;
 	out << " i: run intro" << std::endl;
 	out << " l: run luigi" << std::endl;
-	out << " m: run maxcolor" << std::endl;
 	out << " o: run outro" << std::endl;
 	out << " p: run panelreels" << std::endl;
 	out << " s: run sliders" << std::endl;
+	out << " t: run trans" << std::endl;
 	out << " u: run uniblock" << std::endl;
 	out << " v: run view" << std::endl;
 	out << " w: run witherworm" << std::endl;
@@ -240,14 +242,14 @@ static const char* demonames[26] = {
 	"",
 	"",
 	"luigi",
-	"maxcolor",
+	"",
 	"",
 	"outro",
 	"panelreels",
 	"",
 	"",
 	"sliders",
-	"",
+	"trans",
 	"uniblock",
 	"view",
 	"witherworms",
@@ -287,7 +289,7 @@ ext_demos (NotCurses &nc, const char* demos)
 			case 'o': ret = outro (nc); break;
 			case 's': ret = sliding_puzzle_demo (nc); break;
 			case 'u': ret = unicodeblocks_demo (nc); break;
-			case 'm': ret = maxcolor_demo (nc); break;
+			case 't': ret = trans_demo (nc); break;
 			case 'b': ret = box_demo (nc); break;
 			case 'g': ret = grid_demo (nc); break;
 			case 'l': ret = luigi_demo (nc); break;
@@ -329,7 +331,7 @@ handle_opts (int argc, char** argv, notcurses_options* opts, bool *use_hud)
 
 	*use_hud = false;
 	memset (opts, 0, sizeof(*opts));
-	while ((c = getopt (argc, argv, "HVhckd:f:p:")) != EOF) {
+	while ((c = getopt (argc, argv, "HVhckl:d:f:p:")) != EOF) {
 		switch (c) {
 			case 'H':
 				*use_hud = true;
@@ -338,6 +340,20 @@ handle_opts (int argc, char** argv, notcurses_options* opts, bool *use_hud)
 			case 'h':
 				usage (*argv, EXIT_SUCCESS);
 				break;
+
+			case 'l': {
+				int loglevel;
+				if (sscanf (optarg, "%d", &loglevel) != 1) {
+					std::cerr << "Couldn't get an int from " << optarg << std::endl;
+					usage (*argv, EXIT_FAILURE);
+				}
+				opts->loglevel = static_cast<ncloglevel_e>(loglevel);
+				if (opts->loglevel < NCLogLevel::Silent || opts->loglevel > NCLogLevel::Trace){
+					std::cerr << "Invalid log level: " << opts->loglevel << std::endl;
+					usage (*argv, EXIT_FAILURE);
+				}
+				break;
+			}
 
 			case 'V':
 				std::cout << "notcurses-demo version " << notcurses_version () << std::endl;
@@ -393,7 +409,7 @@ handle_opts (int argc, char** argv, notcurses_options* opts, bool *use_hud)
 }
 
 // just fucking around...for now
-int main (int argc, char** argv)
+int real_main (int argc, char** argv)
 {
 	NotCurses &nc = NotCurses::get_instance ();
 	notcurses_options nopts;
@@ -454,6 +470,10 @@ int main (int argc, char** argv)
 		goto err;
 	}
 
+	if (stop_input ()) {
+		goto err;
+	}
+
 	if (!nc.stop ()) {
 		return EXIT_FAILURE;
 	}
@@ -477,7 +497,7 @@ int main (int argc, char** argv)
 		}
 	}
 
-	delete results;
+	delete[] results;
 
 	if (failed) {
 		std::cerr << " Error running demo. Did you need provide -p?" << std::endl;
@@ -492,4 +512,9 @@ int main (int argc, char** argv)
 	}
 
 	return EXIT_FAILURE;
+}
+
+int main (int argc, char **argv)
+{
+	return real_main (argc, argv);
 }

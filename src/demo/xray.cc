@@ -118,11 +118,9 @@ bool xray_demo (NotCurses &nc)
 	char* path = find_data ("notcursesI.avi");
 	int averr;
 	std::unique_ptr<Visual> ncv (n->visual_open (path, &averr));
-	if (ncv == nullptr || !*ncv) {
-		return false;
-	}
+	delete[] path;
 
-	if (ncv->decode (&averr) == nullptr) {
+	if (ncv == nullptr || !*ncv) {
 		return false;
 	}
 

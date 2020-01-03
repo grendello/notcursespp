@@ -107,8 +107,11 @@ int main (int argc, char** argv)
 			std::cerr << "Error decoding " << argv[i] << ": " << errbuf.data () << std::endl;
 			return EXIT_FAILURE;
 		}
-		nc.getc (true);
+		char32_t ie = nc.getc (true);
 		delete ncv;
+		if (ie == static_cast<char32_t>(-1)) {
+			break;
+		}
 	}
 
 	return EXIT_SUCCESS;

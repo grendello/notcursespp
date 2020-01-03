@@ -7,10 +7,6 @@
 #include <ncpp/NotCurses.hh>
 #include <ncpp/Plane.hh>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // configured via command line option -- the base number of ns between demos
 extern struct timespec demodelay;
 
@@ -20,7 +16,7 @@ char* find_data(const char* datum);
 bool unicodeblocks_demo (ncpp::NotCurses &nc);
 bool witherworm_demo (ncpp::NotCurses &nc);
 bool box_demo (ncpp::NotCurses &nc);
-bool maxcolor_demo (ncpp::NotCurses &nc);
+bool trans_demo (ncpp::NotCurses &nc);
 bool grid_demo (ncpp::NotCurses &nc);
 bool sliding_puzzle_demo (ncpp::NotCurses &nc);
 bool view_demo (ncpp::NotCurses &nc);
@@ -137,9 +133,5 @@ bool hud_completion_notify (const demoresult* result);
 // HUD retrieves results on demand from core
 const demoresult* demoresult_lookup (int idx);
 /*----------------------------------HUD----------------------------------*/
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

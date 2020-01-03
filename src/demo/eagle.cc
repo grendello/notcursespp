@@ -76,6 +76,9 @@ zoom_map (NotCurses &nc, const char* map)
 		return nullptr;
 	}
 
+	// don't actually display--we only call this to free up the ncvisual internals
+	ncv->render (0, 0, 0, 0);
+
 	int vheight;
 	int vwidth;
 	ncv->get_plane ()->get_dim (&vheight, &vwidth);

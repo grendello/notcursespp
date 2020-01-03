@@ -3,6 +3,7 @@
 #include <notcurses.h>
 
 #include <ncpp/NotCurses.hh>
+#include <ncpp/NCLogLevel.hh>
 
 using namespace ncpp;
 
@@ -16,7 +17,8 @@ notcurses_options NotCurses::default_notcurses_options = {
 	/* suppress_bannner */         false,
 	/* no_quit_sighandlers */      false,
 	/* no_winch_sighandler */      false,
-	/* renderfp */                 nullptr
+	/* renderfp */                 nullptr,
+	/* loglevel */                 NCLogLevel::Silent,
 };
 
 NotCurses::~NotCurses () noexcept

@@ -10,6 +10,7 @@ typedef struct nciqueue {
 	struct nciqueue *next;
 } nciqueue;
 
+static bool spawned;
 static pthread_t tid;
 static nciqueue* queue;
 static nciqueue** enqueue = &queue;
@@ -42,15 +43,18 @@ char32_t demo_getc (const struct timespec* ts, ncinput* ni)
 		}
 		pthread_cond_timedwait (&cond, &lock, &abstime);
 	}
-	char32_t id = queue->ni.id;
-	if (ni) {
-		memcpy (ni, &queue->ni, sizeof(*ni));
-	}
+	nciqueue *q = queue;
 	queue = queue->next;
 	if (queue == nullptr) {
 		enqueue = &queue;
 	}
 	pthread_mutex_unlock (&lock);
+	char32_t id = q->ni.id;
+	if (ni) {
+		memcpy (ni, &q->ni, sizeof(*ni));
+	}
+	free(q);
+
 	return id;
 }
 
@@ -87,12 +91,13 @@ handle_mouse (NotCurses *nc, const ncinput* ni)
 }
 
 static void *
-ultramegaok_demo (void* vnc)
+ultramegaok_demo (void *vnc)
 {
 	ncinput ni;
 	auto nc = static_cast<NotCurses*>(vnc);
 	char32_t id;
 	while ((id = nc->getc (true, &ni)) != (char32_t)-1) {
+		pthread_testcancel ();
 		if (id == 0) {
 			continue;
 		}
@@ -114,9 +119,11 @@ ultramegaok_demo (void* vnc)
 
 // listens for events, handling mouse events directly and making other ones
 // available to demos
-bool input_dispatcher(NotCurses &nc)
+bool input_dispatcher (NotCurses &nc)
 {
-	if(pthread_create (&tid, NULL, ultramegaok_demo, &nc)){
+	spawned = true;
+	if (pthread_create (&tid, nullptr, ultramegaok_demo, &nc)) {
+		spawned = false;
 		return false;
 	}
 	return true;
@@ -125,7 +132,10 @@ bool input_dispatcher(NotCurses &nc)
 int stop_input (void)
 {
 	int ret = 0;
-	ret |= pthread_cancel (tid);
-	ret |= pthread_join (tid, nullptr);
+	if (spawned) {
+		ret |= pthread_cancel (tid);
+		ret |= pthread_join (tid, nullptr);
+		spawned = false;
+	}
 	return ret;
 }

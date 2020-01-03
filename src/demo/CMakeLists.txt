@@ -6,10 +6,10 @@ set(DEMO_SOURCES
   hud.cc
   input.cc
   luigi.cc
-  maxcolor.cc
   outro.cc
   panelreel.cc
   sliding.cc
+  trans.cc
   unicodeblocks.cc
   view.cc
   witherworm.cc
