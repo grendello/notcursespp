@@ -120,6 +120,16 @@ namespace ncpp
 			return fadeout (static_cast<const timespec*>(ts), fader);
 		}
 
+		bool fadeout (timespec &ts, fadecb fader = nullptr) const noexcept
+		{
+			return fadeout (&ts, fader);
+		}
+
+		bool fadeout (timespec const& ts, fadecb fader = nullptr) const noexcept
+		{
+			return fadeout (&ts, fader);
+		}
+
 		bool fadeout (const timespec *ts, fadecb fader = nullptr) const noexcept
 		{
 			return ncplane_fadeout (plane, ts, fader) != -1;
@@ -128,6 +138,16 @@ namespace ncpp
 		bool fadein (timespec *ts, fadecb fader = nullptr) const noexcept
 		{
 			return fadein (static_cast<const timespec*>(ts), fader);
+		}
+
+		bool fadein (timespec &ts, fadecb fader = nullptr) const noexcept
+		{
+			return fadein (ts, fader);
+		}
+
+		bool fadein (timespec const& ts, fadecb fader = nullptr) const noexcept
+		{
+			return fadein (ts, fader);
 		}
 
 		bool fadein (const timespec *ts, fadecb fader = nullptr) const noexcept
@@ -150,6 +170,11 @@ namespace ncpp
 			ncplane_dim_yx (plane, rows, cols);
 		}
 
+		void get_dim (int &rows, int &cols) const noexcept
+		{
+			get_dim (&rows, &cols);
+		}
+
 		int get_dim_x () const noexcept
 		{
 			return ncplane_dim_x (plane);
@@ -163,6 +188,11 @@ namespace ncpp
 		void get_yx (int *y, int *x) const noexcept
 		{
 			ncplane_yx (plane, y, x);
+		}
+
+		void get_yx (int &y, int &x) const noexcept
+		{
+			get_yx (&y, &x);
 		}
 
 		bool move (int y, int x) const noexcept
@@ -242,6 +272,11 @@ namespace ncpp
 			ncplane_cursor_yx (plane, y, x);
 		}
 
+		void get_cursor_yx (int &y, int &x) const noexcept
+		{
+			get_cursor_yx (&y, &x);
+		}
+
 		int putc (const Cell &c) const noexcept
 		{
 			return ncplane_putc (plane, c);
@@ -255,9 +290,17 @@ namespace ncpp
 			return putc (*c);
 		}
 
-		int putc (int y, int x, const Cell &c) const noexcept
+		int putc (int y, int x, Cell const& c) const noexcept
 		{
 			return ncplane_putc_yx (plane, y, x, c);
+		}
+
+		int putc (int y, int x, Cell const* c) const noexcept
+		{
+			if (c == nullptr)
+				return -1;
+
+			return putc (y, x, *c);
 		}
 
 		int putc (char c) const noexcept
@@ -270,22 +313,22 @@ namespace ncpp
 			return ncplane_putsimple_yx (plane, y, x, c);
 		}
 
-		int putc (const char *gclust, int *sbytes) const noexcept
+		int putc (const char *gclust, int *sbytes = nullptr) const noexcept
 		{
 			return ncplane_putegc (plane, gclust, sbytes);
 		}
 
-		int putc (int y, int x, const char *gclust, int *sbytes) const noexcept
+		int putc (int y, int x, const char *gclust, int *sbytes = nullptr) const noexcept
 		{
 			return ncplane_putegc_yx (plane, y, x, gclust, sbytes);
 		}
 
-		int putc (const wchar_t *gclust, int *sbytes) const noexcept
+		int putc (const wchar_t *gclust, int *sbytes = nullptr) const noexcept
 		{
 			return ncplane_putwegc (plane, gclust, sbytes);
 		}
 
-		int putc (int y, int x, const wchar_t *gclust, int *sbytes) const noexcept
+		int putc (int y, int x, const wchar_t *gclust, int *sbytes = nullptr) const noexcept
 		{
 			return ncplane_putwegc_yx (plane, y, x, gclust, sbytes);
 		}

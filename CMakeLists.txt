@@ -14,8 +14,8 @@ cmake_minimum_required(VERSION 3.12)
 # set NCPP_BINARY_AGE and NCPP_INTERFACE_AGE to 0.
 
 set(NCPP_VERSION_MAJOR 0)
-set(NCPP_VERSION_MINOR 0)
-set(NCPP_VERSION_MICRO 1)
+set(NCPP_VERSION_MINOR 1)
+set(NCPP_VERSION_MICRO 0)
 
 set(NCPP_INTERFACE_AGE 0)
 set(NCPP_BINARY_AGE 1)
@@ -44,7 +44,7 @@ set(PACKAGE_VERSION_MAJOR "${NCPP_VERSION_MAJOR}")
 set(PACKAGE_VERSION_MINOR "${NCPP_VERSION_MINOR}")
 set(PACKAGE_VERSION_MICRO "${NCPP_VERSION_MICRO}")
 
-option(OPTIMIZE_NATIVE "Optimize for the native (host) compiler" ON)
+option(OPTIMIZE_NATIVE "Optimize for the native (host) compiler" OFF)
 option(USE_LTO "Use Link-Time Optimizations if the compiler supports them" OFF)
 option(USE_LLD "Use the LLVM lld linker, if found" OFF)
 option(ENABLE_PROFILING "Support profiling of the generated code" OFF)

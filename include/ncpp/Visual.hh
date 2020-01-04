@@ -29,10 +29,7 @@ namespace ncpp
 
 		~Visual () noexcept
 		{
-			if (visual == nullptr)
-				return;
-
-			ncvisual_destroy (visual);
+			destroy ();
 		}
 
 		operator bool () noexcept
@@ -48,6 +45,15 @@ namespace ncpp
 		operator ncvisual const* () const noexcept
 		{
 			return visual;
+		}
+
+		void destroy () noexcept
+		{
+			if (visual == nullptr)
+				return;
+
+			ncvisual_destroy (visual);
+			visual = nullptr;
 		}
 
 		AVFrame* decode (int *averr) const noexcept

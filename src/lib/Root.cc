@@ -7,5 +7,5 @@ using namespace ncpp;
 
 notcurses* Root::get_notcurses () const noexcept
 {
-	return NotCurses::get_instance ().get_notcurses ();
+	return NotCurses::get_instance ();
 }

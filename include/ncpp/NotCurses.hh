@@ -15,11 +15,6 @@
 #include "Plane.hh"
 #include "_helpers.hh"
 
-namespace std
-{
-	class mutex;
-}
-
 namespace ncpp
 {
 	class NCPP_API_EXPORT NotCurses
@@ -38,16 +33,21 @@ namespace ncpp
 			return nc != nullptr;
 		}
 
+		operator notcurses* () noexcept
+		{
+			return nc;
+		}
+
+		operator notcurses const* () const noexcept
+		{
+			return nc;
+		}
+
 		bool init (const notcurses_options &nc_opts, FILE *fp = nullptr) noexcept;
 
 		bool init (FILE *fp = nullptr) noexcept
 		{
 			return init (default_notcurses_options, fp);
-		}
-
-		notcurses* get_notcurses () const noexcept
-		{
-			return nc;
 		}
 
 		static const char* enmetric (uintmax_t val, unsigned decimal, char *buf, int omitdec, unsigned mult, int uprefix) noexcept
@@ -65,6 +65,11 @@ namespace ncpp
 			return ::bprefix (val, decimal, buf, omitdec);
 		}
 
+		static const char* version () noexcept
+		{
+			return notcurses_version ();
+		}
+
 		bool can_fade () const noexcept
 		{
 			return notcurses_canfade (nc);
@@ -77,11 +82,17 @@ namespace ncpp
 
 		void get_stats (ncstats *stats) const noexcept
 		{
+			if (stats == nullptr)
+				return;
+
 			notcurses_stats (nc, stats);
 		}
 
 		void reset_stats (ncstats *stats) const noexcept
 		{
+			if (stats == nullptr)
+				return;
+
 			notcurses_reset_stats (nc, stats);
 		}
 
@@ -95,9 +106,19 @@ namespace ncpp
 			return notcurses_resize (nc, rows, cols) == 0;
 		}
 
+		bool resize (int &rows, int &cols) const noexcept
+		{
+			return resize (&rows, &cols) == 0;
+		}
+
 		void get_term_dim (int *rows, int *cols) const noexcept
 		{
 			notcurses_term_dim_yx (nc, rows, cols);
+		}
+
+		void get_term_dim (int &rows, int &cols) const noexcept
+		{
+			get_term_dim (&rows, &cols);
 		}
 
 		bool refresh () const noexcept
@@ -125,7 +146,7 @@ namespace ncpp
 			return static_cast<CellStyle>(notcurses_supported_styles (nc));
 		}
 
-		char32_t getc (const timespec *ts, sigset_t *sigmask, ncinput *ni = nullptr) const noexcept
+		char32_t getc (const timespec *ts, sigset_t *sigmask = nullptr, ncinput *ni = nullptr) const noexcept
 		{
 			return notcurses_getc (nc, ts, sigmask, ni);
 		}
