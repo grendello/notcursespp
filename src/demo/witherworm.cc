@@ -630,7 +630,7 @@ bool witherworm_demo (NotCurses &nc)
 					n->get_cursor_yx (&y, &x);
 					// fprintf(stderr, "%02d %s\n", y, *s);
 					while ((*s)[idx]) { // each multibyte char of string
-						if (n->set_fg_rgb (channel_r(rgb), channel_g(rgb), channel_b(rgb))) {
+						if (!n->set_fg_rgb (channel_r(rgb), channel_g(rgb), channel_b(rgb))) {
 							return false;
 						}
 
