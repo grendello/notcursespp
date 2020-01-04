@@ -20,6 +20,15 @@ constexpr int BLOCKSIZE = 512; // show this many per page
 constexpr int CHUNKSIZE = 32;  // show this many per line
 
 static bool
+fade_block (std::shared_ptr<Plane> nn, const struct timespec* subdelay)
+{
+	bool ret = nn->fadein (subdelay);
+	nn.reset ();
+
+	return ret;
+}
+
+static bool
 draw_block (std::shared_ptr<Plane> nn, uint32_t blockstart)
 {
 	Cell ul, ur;
@@ -55,13 +64,12 @@ draw_block (std::shared_ptr<Plane> nn, uint32_t blockstart)
 		}
 
 		int z;
-		Cell c;
 		// 16 to a line
 		auto utf8arr = new char[MB_CUR_MAX * 2 + 1];
 		for (z = 0 ; z < CHUNKSIZE ; ++z) {
-			wchar_t w[2] = { static_cast<wchar_t>(blockstart) + chunk * CHUNKSIZE + z, L'\u200e' };
+			wchar_t w[3] = { static_cast<wchar_t>(blockstart) + chunk * CHUNKSIZE + z, L'\u200e', L'\0' };
 
-			if (wcswidth(w, 2) >= 1 && iswprint (w[0])) {
+			if (wcswidth (w, 3) >= 1 && iswprint (w[0])) {
 				mbstate_t ps;
 				memset (&ps, 0, sizeof(ps));
 
@@ -76,8 +84,8 @@ draw_block (std::shared_ptr<Plane> nn, uint32_t blockstart)
 			} else { // don't dump non-printing codepoints
 				strcpy (utf8arr, " ");
 			}
-			c.set_fg_rgb (0xad + z * 2, 0xd8, 0xe6 - z * 2);
-			c.set_bg_rgb (8 * chunk, 8 * chunk + z, 8 * chunk);
+			nn->set_fg_rgb (0xad + z * 2, 0xff, 0x2f - z * 2);
+			nn->set_bg_rgb (8 * chunk, 8 * chunk + z, 8 * chunk);
 
 			if (nn->putstr (utf8arr) < 0) {
 				return false;
@@ -88,7 +96,6 @@ draw_block (std::shared_ptr<Plane> nn, uint32_t blockstart)
 			}
 		}
 		delete[] utf8arr;
-		nn->release (c);
 	}
 
 	return true;
@@ -217,8 +224,9 @@ bool unicodeblocks_demo (NotCurses &nc)
 			return false;
 		}
 
-		nc.render ();
-		nanosleep (&subdelay, nullptr);
+		if (!fade_block (nn, &subdelay)) { // destroys nn
+			return false;
+		}
 
 		// for a 32-bit wchar_t, we would want up through 24 bits of block ID. but
 		// really, the vast majority of space is unused.

@@ -37,7 +37,7 @@ std::shared_ptr<Visual>
 outzoomed_map (NotCurses &nc, const char* map)
 {
 	int averr;
-	std::shared_ptr<Visual> ncv (Visual::open_plane (map, &averr, 0, 0, NCScale::Scale));
+	auto ncv = std::make_shared<Visual> (map, &averr, 0, 0, NCScale::Scale);
 	if (ncv == nullptr || !*ncv) {
 		return nullptr;
 	}
@@ -66,7 +66,7 @@ zoom_map (NotCurses &nc, const char* map)
 	// and begin opening it on larger and larger planes that fit on the screen
 	// less and less. eventually, reach our natural NCSCALE_NONE size and begin
 	// scrolling through the map, whooooooooosh.
-	std::shared_ptr<Visual> ncv (Visual::open_plane (map, &averr, 0, 0, NCScale::None));
+	auto ncv = std::make_shared<Visual> (map, &averr, 0, 0, NCScale::None);
 	if (ncv == nullptr || !*ncv) {
 		return nullptr;
 	}
@@ -139,7 +139,6 @@ draw_eagle (std::shared_ptr<Plane> n, const char* sprite)
 
 	size_t s;
 	int sbytes;
-	uint64_t channels = 0;
 	n->cursor_move (0, 0);
 	for (s = 0 ; sprite[s] ; ++s) {
 		switch (sprite[s]) {
@@ -148,20 +147,20 @@ draw_eagle (std::shared_ptr<Plane> n, const char* sprite)
 				break;
 
 			case '1':
-				channels_set_fg_rgb (&channels, 0xff, 0xff, 0xff);
+				n->set_fg_rgb (0xff, 0xff, 0xff);
 				break;
 
 			case '2':
-				channels_set_fg_rgb (&channels, 0xe3, 0x9d, 0x25);
+				n->set_fg_rgb (0xe3, 0x9d, 0x25);
 				break;
 
 			case '3':
-				channels_set_fg_rgb (&channels, 0x3a, 0x84, 0x00);
+				n->set_fg_rgb (0x3a, 0x84, 0x00);
 				break;
 		}
 
 		if (sprite[s] != '0') {
-			if(n->putc ("\u2588", 0, channels, &sbytes) != 1) {
+			if (n->putc ("\u2588", &sbytes) != 1) {
 				return false;
 			}
 		}

@@ -72,11 +72,9 @@ Plane* hud_create (NotCurses &nc)
 	auto n = new Plane (HUD_ROWS, HUD_COLS, yoffset, xoffset);
 	hud_standard_bg (n);
 
-	uint64_t channels = 0;
-	channels_set_fg (&channels, 0xffffff);
-	channels_set_bg (&channels, 0xffffff);
+	n->set_fg (0xffffff);
 	n->set_bg (0x409040);
-	if (n->putc (0, HUD_COLS - 1, "\u2612", 0, channels, nullptr) < 0) {
+	if (n->putc (0, HUD_COLS - 1, "\u2612", nullptr) < 0) {
 		delete n;
 		return nullptr;
 	}

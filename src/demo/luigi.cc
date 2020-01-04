@@ -126,9 +126,9 @@ draw_luigi (std::shared_ptr<Plane> n, const char* sprite)
 
 	size_t s;
 	int sbytes;
-	uint64_t channels = 0;
+
 	// optimization so we can elide more color changes, see README's "#perf"
-	channels_set_bg_rgb (&channels, 0x00, 0x00, 0x00);
+	n->set_bg_rgb (0x00, 0x00, 0x00);
 	for (s = 0 ; sprite[s] ; ++s) {
 		switch (sprite[s]) {
 			case '0':
@@ -136,20 +136,20 @@ draw_luigi (std::shared_ptr<Plane> n, const char* sprite)
 				break;
 
 			case '1':
-				channels_set_fg_rgb (&channels, 0xff, 0xff, 0xff);
+				n->set_fg_rgb (0xff, 0xff, 0xff);
 				break;
 
 			case '2':
-				channels_set_fg_rgb (&channels, 0xe3, 0x9d, 0x25);
+				n->set_fg_rgb (0xe3, 0x9d, 0x25);
 				break;
 
 			case '3':
-				channels_set_fg_rgb (&channels, 0x3a, 0x84, 0x00);
+				n->set_fg_rgb (0x3a, 0x84, 0x00);
 				break;
 		}
 
 		if (sprite[s] != '0') {
-			if (n->putc ("\u2588", 0, channels, &sbytes) != 1) {
+			if (n->putc ("\u2588", &sbytes) != 1) {
 				return false;
 			}
 		}

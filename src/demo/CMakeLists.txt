@@ -1,5 +1,6 @@
 set(DEMO_SOURCES
   boxdemo.cc
+  chunli.cc
   demo.cc
   eagle.cc
   grid.cc

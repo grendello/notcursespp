@@ -107,7 +107,12 @@ namespace ncpp
 				xoff,
 				ylen,
 				xlen
-			) == 0;
+			) != -1;
+		}
+
+		bool resize (int ylen, int xlen) const noexcept
+		{
+			return ncplane_resize_simple (plane, ylen, xlen) != -1;
 		}
 
 		bool fadeout (timespec *ts, fadecb fader = nullptr) const noexcept
@@ -143,6 +148,16 @@ namespace ncpp
 		void get_dim (int *rows, int *cols) const noexcept
 		{
 			ncplane_dim_yx (plane, rows, cols);
+		}
+
+		int get_dim_x () const noexcept
+		{
+			return ncplane_dim_x (plane);
+		}
+
+		int get_dim_y () const noexcept
+		{
+			return ncplane_dim_y (plane);
 		}
 
 		void get_yx (int *y, int *x) const noexcept
@@ -255,24 +270,24 @@ namespace ncpp
 			return ncplane_putsimple_yx (plane, y, x, c);
 		}
 
-		int putc (const char *gclust, uint32_t attr, uint64_t channels, int *sbytes) const noexcept
+		int putc (const char *gclust, int *sbytes) const noexcept
 		{
-			return ncplane_putegc (plane, gclust, attr, channels, sbytes);
+			return ncplane_putegc (plane, gclust, sbytes);
 		}
 
-		int putc (int y, int x, const char *gclust, uint32_t attr, uint64_t channels, int *sbytes) const noexcept
+		int putc (int y, int x, const char *gclust, int *sbytes) const noexcept
 		{
-			return ncplane_putegc_yx (plane, y, x, gclust, attr, channels, sbytes);
+			return ncplane_putegc_yx (plane, y, x, gclust, sbytes);
 		}
 
-		int putc (const wchar_t *gclust, uint32_t attr, uint64_t channels, int *sbytes) const noexcept
+		int putc (const wchar_t *gclust, int *sbytes) const noexcept
 		{
-			return ncplane_putwegc (plane, gclust, attr, channels, sbytes);
+			return ncplane_putwegc (plane, gclust, sbytes);
 		}
 
-		int putc (int y, int x, const wchar_t *gclust, uint32_t attr, uint64_t channels, int *sbytes) const noexcept
+		int putc (int y, int x, const wchar_t *gclust, int *sbytes) const noexcept
 		{
-			return ncplane_putwegc_yx (plane, y, x, gclust, attr, channels, sbytes);
+			return ncplane_putwegc_yx (plane, y, x, gclust, sbytes);
 		}
 
 		int putstr (const char *gclustarr) const noexcept

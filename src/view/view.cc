@@ -112,6 +112,17 @@ int main (int argc, char** argv)
 		if (ie == static_cast<char32_t>(-1)) {
 			break;
 		}
+
+		if (ie == NCKEY_RESIZE){
+			--i; // rerun with the new size
+			if (!nc.resize (&dimy, &dimx)) {
+				return EXIT_FAILURE;
+			}
+
+			if (!ncp.resize(dimy, dimx)) {
+				return EXIT_FAILURE;
+			}
+		}
 	}
 
 	return EXIT_SUCCESS;

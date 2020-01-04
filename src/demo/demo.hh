@@ -17,6 +17,7 @@ bool unicodeblocks_demo (ncpp::NotCurses &nc);
 bool witherworm_demo (ncpp::NotCurses &nc);
 bool box_demo (ncpp::NotCurses &nc);
 bool trans_demo (ncpp::NotCurses &nc);
+bool chunli_demo (ncpp::NotCurses &nc);
 bool grid_demo (ncpp::NotCurses &nc);
 bool sliding_puzzle_demo (ncpp::NotCurses &nc);
 bool view_demo (ncpp::NotCurses &nc);

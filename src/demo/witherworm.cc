@@ -303,9 +303,10 @@ message (std::shared_ptr<Plane> n, int maxy, int maxx, int num, int total, int b
 	n->set_base (c);
 	n->release (c);
 
-	uint64_t channels = 0;
-	n->set_fg_rgb (64, 128, 240);
+	n->set_fg_rgb (255, 255, 255);
 	n->set_bg_rgb (32, 64, 32);
+
+	uint64_t channels = 0;
 	channels_set_fg_rgb (&channels, 255, 255, 255);
 	channels_set_bg_rgb (&channels, 32, 64, 32);
 	n->cursor_move (2, 0);
@@ -314,45 +315,37 @@ message (std::shared_ptr<Plane> n, int maxy, int maxx, int num, int total, int b
 	}
 
 	// bottom handle
-	n->cursor_move (4, 17);
-	n->putc ("┬", 0, channels, NULL);
-	n->cursor_move (5, 17);
-	n->putc ("│", 0, channels, NULL);
-	n->cursor_move (6, 17);
-	n->putc ("╰", 0, channels, NULL);
+	n->putc (4, 17, "┬", nullptr);
+	n->putc (5, 17, "│", nullptr);
+	n->putc (6, 17, "╰", nullptr);
 
 	Cell hl;
-	n->prime (hl, "─", 0, channels);
+	n->load (hl, "─");
+	hl.set_fg_rgb (255, 255, 255);
+	hl.set_bg_rgb (32, 64, 32);
 	n->hline (hl, 57 - 18 - 1);
-	n->cursor_move (6, 56);
-	n->putc ("╯", 0, channels, NULL);
-	n->cursor_move (5, 56);
-	n->putc ("│", 0, channels, NULL);
-	n->cursor_move (4, 56);
-	n->putc ("┤", 0, channels, NULL);
-	n->cursor_move (5, 18);
-	n->styles_on (CellStyle::Italic);
-	n->printf (" bytes: %05d EGCs: %05d cols: %05d ", bytes_out, egs_out, cols_out);
-	n->styles_off (CellStyle::Italic);
+
+	n->putc (6, 56, "╯", nullptr);
+	n->putc (5, 56, "│", nullptr);
+	n->putc (4, 56, "┤", nullptr);
 
 	// top handle
-	n->cursor_move (2, 3);
-	n->putc ("╨", 0, channels, NULL);
-	n->cursor_move (1, 3);
-	n->putc ("║", 0, channels, NULL);
-	n->cursor_move (0, 3);
-	n->putc ("╔", 0, channels, NULL);
-	n->prime (hl, "═", 0, channels);
+	n->putc (2, 3, "╨", nullptr);
+	n->putc (1, 3, "║", nullptr);
+	n->putc (0, 3, "╔", nullptr);
+	n->load (hl, "═");
 	n->hline (hl, 20 - 4 - 1);
 	n->release (hl);
-	n->cursor_move (0, 19);
-	n->putc ("╗", 0, channels, NULL);
-	n->cursor_move (1, 19);
-	n->putc ("║", 0, channels, NULL);
-	n->cursor_move (2, 19);
-	n->putc ("╨", 0, channels, NULL);
-	n->cursor_move (1, 4);
+
+	n->putc (0, 19, "╗", nullptr);
+	n->putc (1, 19, "║", nullptr);
+	n->putc (2, 19, "╨", nullptr);
+	n->set_fg_rgb (64, 128, 240);
+	n->set_bg_rgb (32, 64, 32);
 	n->styles_on (CellStyle::Italic);
+	n->cursor_move (5, 18);
+	n->printf (" bytes: %05d EGCs: %05d cols: %05d ", bytes_out, egs_out, cols_out);
+	n->cursor_move (1, 4);
 	n->printf (" %03dx%03d (%d/%d) ", maxx, maxy, num + 1, total);
 	n->cursor_move (3, 1);
 	n->styles_off (CellStyle::Italic);
@@ -631,14 +624,13 @@ bool witherworm_demo (NotCurses &nc)
 			x = 0;
 			do { // we fill up the entire screen, however large, walking our strtable
 				s = strs;
-				uint64_t channels = 0;
-				channels_set_bg_rgb (&channels, 20, 20, 20);
+				n->set_bg_rgb (20, 20, 20);
 				for (s = strs ; *s ; ++s) {
 					size_t idx = 0;
 					n->get_cursor_yx (&y, &x);
 					// fprintf(stderr, "%02d %s\n", y, *s);
 					while ((*s)[idx]) { // each multibyte char of string
-						if (channels_set_fg_rgb (&channels, channel_r(rgb), channel_g(rgb), channel_b(rgb))) {
+						if (n->set_fg_rgb (channel_r(rgb), channel_g(rgb), channel_b(rgb))) {
 							return false;
 						}
 
@@ -660,18 +652,15 @@ bool witherworm_demo (NotCurses &nc)
 						int ulen = 0;
 						int r;
 						if (wcwidth(wcs) <= maxx - x) {
-							if ((r = n->putc (&(*s)[idx], 0, channels, &ulen)) < 0) {
+							if ((r = n->putc (&(*s)[idx], &ulen)) < 0) {
 								if (ulen < 0) {
 									return false;
 								}
 							}
 						} else {
-							Cell octo ('#', 0, channels);
-							if ((r = n->putc (octo)) < 1) {
+							if ((r = n->putc ('#')) < 1) {
 								return false;
 							}
-
-							n->release (octo);
 						}
 
 						n->get_cursor_yx (&y, &x);

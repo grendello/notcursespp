@@ -50,6 +50,21 @@ namespace ncpp
 			return nc;
 		}
 
+		static const char* enmetric (uintmax_t val, unsigned decimal, char *buf, int omitdec, unsigned mult, int uprefix) noexcept
+		{
+			return ::enmetric (val, decimal, buf, omitdec, mult, uprefix);
+		}
+
+		static const char* qprefix (uintmax_t val, unsigned decimal, char *buf, int omitdec) noexcept
+		{
+			return ::qprefix (val, decimal, buf, omitdec);
+		}
+
+		static const char* bprefix (uintmax_t val, unsigned decimal, char *buf, int omitdec) noexcept
+		{
+			return ::bprefix (val, decimal, buf, omitdec);
+		}
+
 		bool can_fade () const noexcept
 		{
 			return notcurses_canfade (nc);
