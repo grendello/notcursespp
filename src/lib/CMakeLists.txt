@@ -30,7 +30,7 @@ elseif(UNIX)
   set_target_properties(notcurses++ PROPERTIES
     VERSION ${LT_VERSION}
     SOVERSION ${LT_REVISION}
-    OUTPUT_NAME "notcurses++-${LT_RELEASE}")
+    OUTPUT_NAME "notcurses++")
 else()                                                                                                                                                                                                                                                                                                   
   message(FATAL_ERROR "Only Unix supported, sorry")
 endif()

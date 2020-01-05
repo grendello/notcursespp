@@ -1,0 +1,34 @@
+Source: notcurses++
+Priority: optional
+Maintainer: Marek Habersack <grendel@twistedcode.net>
+Build-Depends: debhelper-compat (= 12), libnotcurses-dev (>= 1.0.0-1), cmake (>= 3.12.0-0), ninja-build,
+ pkg-config, g++ (>= 4:7.0.0-0)
+Standards-Version: 4.4.0
+Section: libs
+Homepage: https://github.com/grendello/notcursespp
+Vcs-Browser: https://github.com/grendello/notcursespp
+Vcs-Git: https://github.com/grendello/notcursespp.git
+
+Package: libnotcurses++-dev
+Section: libdevel
+Architecture: any
+Multi-Arch: same
+Depends: libnotcurses-dev (>= 1.0.0-1), libnotcurses++1 (= ${binary:Version}), ${misc:Depends}
+Description: Development files for notcurses++
+ Files necessary for development using notcurses++, a C++ wrapper for notcurses
+
+Package: libnotcurses++1
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Shared libraries for notcurses++
+ notcurses++ is a C++ binding for the notcurses TUI library
+ (https://nick-black.com/dankwiki/index.php/Notcurses)
+
+Package: notcurses++-bin
+Architecture: any
+Multi-Arch: foreign
+Depends: ${shlibs:Depends}, ${misc:Depends}, ncurses-term (>= 6.1)
+Description: Binaries from notcurses++
+ C++ ports of all the demos and utilities from the notcurses TUI library
+ (https://nick-black.com/dankwiki/index.php/Notcurses)
