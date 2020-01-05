@@ -1,3 +1,10 @@
+notcurses++ (0.3.0-1) unstable; urgency=medium
+
+  * Matches current upstream version:
+    https://github.com/dankamongmen/notcurses/commit/7e59cf10534ca169d51ffb3a24e9f4b21fe599e3
+
+ -- Marek Habersack <grendel@twistedcode.net>  Mon, 06 Jan 2020 00:21:48 +0100
+
 notcurses++ (0.2.1-1) unstable; urgency=medium
 
   * Initial release
