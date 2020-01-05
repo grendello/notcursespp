@@ -142,12 +142,12 @@ namespace ncpp
 
 		bool fadein (timespec &ts, fadecb fader = nullptr) const noexcept
 		{
-			return fadein (ts, fader);
+			return fadein (&ts, fader);
 		}
 
 		bool fadein (timespec const& ts, fadecb fader = nullptr) const noexcept
 		{
-			return fadein (ts, fader);
+			return fadein (&ts, fader);
 		}
 
 		bool fadein (const timespec *ts, fadecb fader = nullptr) const noexcept

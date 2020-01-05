@@ -33,7 +33,7 @@ PROFILING       := no
 NINJA_OPTIONS   := -j$(CONCURRENCY)
 V               :=
 PREFIX          := /usr/local
-CMAKE_OPTIONS   := -GNinja
+CMAKE_OPTIONS   := -GNinja -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
 PROJECT_NAME    = notcurses++
 

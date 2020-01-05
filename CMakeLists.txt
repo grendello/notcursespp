@@ -102,6 +102,7 @@ set(TEST_COMPILER_ARGS
 #  Wsuggest-final-types
 #  Wsuggest-final-methods
   Wsuggest-override
+  Wno-c99-extensions
   g
   fvisibility=hidden
   fno-rtti

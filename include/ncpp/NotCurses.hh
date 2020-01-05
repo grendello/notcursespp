@@ -191,8 +191,6 @@ namespace ncpp
 	private:
 		notcurses *nc;
 		std::atomic_bool initialized;
-		std::map<ncplane*, Plane*> *top_planes = nullptr;
-		std::mutex top_planes_mutex;
 
 		static NotCurses _instance;
 	};
