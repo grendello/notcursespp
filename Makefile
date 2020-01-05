@@ -66,14 +66,6 @@ ifneq ($(PROFILING),no)
 CMAKE_OPTIONS += -DENABLE_PROFILING=ON
 endif
 
-ifeq ($(shell uname),Darwin)
-BOOST_INCLUDEDIR = /usr/local/include
-BOOST_LIBRARYDIR = /usr/local/lib
-
-export BOOST_INCLUDEDIR
-export BOOST_LIBRARYDIR
-endif
-
 all: prepare build
 
 prepare: $(BUILD_DIR_STAMP)
@@ -88,6 +80,9 @@ build:
 
 install:
 	DESTDIR=$(DESTDIR) ninja $(NINJA_OPTIONS) -C $(BUILD_DIR) install
+
+install-strip:
+	DESTDIR=$(DESTDIR) ninja $(NINJA_OPTIONS) -C $(BUILD_DIR) install/strip
 
 clean:
 	rm -rf $(BUILD_DIR)

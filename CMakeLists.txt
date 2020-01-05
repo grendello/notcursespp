@@ -2,6 +2,8 @@ cmake_policy(SET CMP0048 NEW)
 set(CMAKE_POLICY_DEFAULT_CMP0048 NEW)
 cmake_minimum_required(VERSION 3.12)
 
+set(NOTCURSES_MIN_VERSION 1.0.0)
+
 # Shared library versioning is done in the same way as SDL:
 #
 # If the version changes, then:
@@ -33,7 +35,8 @@ set(LT_VERSION "${LT_MAJOR}.${LT_AGE}.${LT_REVISION}")
 project(
   notcurses++
   VERSION ${NCPP_VERSION_MAJOR}.${NCPP_VERSION_MINOR}.${NCPP_VERSION_MICRO}
-  DESCRIPTION "notcurses C++ wrapper"
+  DESCRIPTION "C++ wrapper for notcurses (https://github.com/dankamongmen/notcurses)"
+  HOMEPAGE_URL "https://github.com/grendello/notcursespp"
   LANGUAGES CXX
   )
 
@@ -49,11 +52,13 @@ option(USE_LTO "Use Link-Time Optimizations if the compiler supports them" OFF)
 option(USE_LLD "Use the LLVM lld linker, if found" OFF)
 option(ENABLE_PROFILING "Support profiling of the generated code" OFF)
 option(COMPILER_DIAG_COLOR "Show compiler diagnostics/errors in color" ON)
+option(DISABLE_FFMPEG "Disable FFmpeg image/video support" OFF)
 
 include(CheckIncludeFiles)
 include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
 include(FindPkgConfig)
+include(GNUInstallDirs)
 
 if (!PKG_CONFIG_FOUND)
   message(FATAL_ERROR "pkg-config is required")
@@ -70,6 +75,7 @@ set(CMAKE_SKIP_INSTALL_RPATH TRUE)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 macro(cxx_compiler_has_flag _flag)
   string(REGEX REPLACE "-|,|=" "_" _flag_name ${_flag})
@@ -171,9 +177,21 @@ if(CMAKE_HOST_SYSTEM_NAME STREQUAL Linux)
   add_definitions(-D_GNU_SOURCE)
 endif()
 
-pkg_check_modules(AVUTIL REQUIRED libavutil>=56.0)
-pkg_check_modules(AVFORMAT REQUIRED libavformat>=57.0)
-pkg_check_modules(NOTCURSES REQUIRED notcurses>=1.0.0)
+# pkg-config support
+configure_file(src/notcurses++.pc.in
+  ${CMAKE_CURRENT_BINARY_DIR}/notcurses++.pc
+  @ONLY
+  )
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/notcurses++.pc
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
+)
+
+pkg_check_modules(NOTCURSES REQUIRED notcurses>=${NOTCURSES_MIN_VERSION})
+if(NOT DISABLE_FFMPEG)
+  pkg_check_modules(AVUTIL REQUIRED libavutil>=56.0)
+  pkg_check_modules(AVFORMAT REQUIRED libavformat>=57.0)
+endif()
 
 set(NOTCURSES_DATA_DIR "${NOTCURSES_PREFIX}/share/notcurses")
 include_directories(${NOTCURSES_INCLUDE_DIRS})

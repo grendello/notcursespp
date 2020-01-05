@@ -17,6 +17,7 @@ set(DEMO_SOURCES
   xray.cc
   )
 
-add_executable(demo ${DEMO_SOURCES})
-add_dependencies(demo notcurses++)
-target_link_libraries(demo PRIVATE notcurses++)
+add_executable(ncpp-demo ${DEMO_SOURCES})
+add_dependencies(ncpp-demo notcurses++)
+target_link_libraries(ncpp-demo PRIVATE notcurses++)
+install(TARGETS ncpp-demo DESTINATION bin)
