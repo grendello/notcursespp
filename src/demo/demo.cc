@@ -163,7 +163,6 @@ intro (NotCurses &nc)
 	ncp->release (c);
 
 	uint64_t channels = 0;
-	// FIXME: add proper Channels API
 	channels_set_fg_rgb (&channels, 90, 0, 90);
 	channels_set_bg_rgb (&channels, 0, 0, 180);
 	if (!ncp->cursor_move (4, 4)) {

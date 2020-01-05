@@ -16,18 +16,24 @@ namespace ncpp
 	public:
 		static panelreel_options default_options;
 
+		explicit PanelReel (Plane *plane, const panelreel_options *popts, int efd) noexcept
+		{
+			if (plane == nullptr)
+				return;
+
+			create_reel (reinterpret_cast<ncplane*>(plane), popts, efd);
+		}
+
+		explicit PanelReel (ncplane *plane, const panelreel_options *popts, int efd) noexcept
+		{
+			create_reel (plane, popts, efd);
+		}
+
 		~PanelReel ()
 		{
 			destroy ();
 		}
 
-	protected:
-		explicit PanelReel (ncplane *plane, const panelreel_options *popts, int efd) noexcept
-		{
-			reel = panelreel_create (plane, popts == nullptr ? &default_options : popts, efd);
-		}
-
-	public:
 		operator bool () noexcept
 		{
 			return reel != nullptr;
@@ -145,6 +151,11 @@ namespace ncpp
 				return nullptr;
 
 			return t->get_tablet ();
+		}
+
+		void create_reel (ncplane *plane, const panelreel_options *popts, int efd) noexcept
+		{
+			reel = panelreel_create (plane, popts == nullptr ? &default_options : popts, efd);
 		}
 
 	private:

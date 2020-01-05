@@ -29,7 +29,7 @@ private:
 
 int tabletfxn (tablet* tb, int begx, int begy, int maxx, int maxy, bool cliptop)
 {
-	Tablet *t = Tablet::get_instance (tb); // TODO: ugly, replace with something better
+	Tablet *t = Tablet::map_tablet (tb);
 	Plane* p = t->get_plane ();
 	auto *tctx = t->get_userptr<TabletCtx> ();
 	p->erase ();
@@ -160,7 +160,6 @@ int main (int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	// TODO: add a channels class
 	channels_set_fg (&PanelReel::default_options.focusedchan, 0xffffff);
 	channels_set_bg (&PanelReel::default_options.focusedchan, 0x00c080);
 	channels_set_fg (&PanelReel::default_options.borderchan, 0x00c080);

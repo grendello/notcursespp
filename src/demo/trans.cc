@@ -11,7 +11,6 @@ using namespace ncpp;
 static void
 grow_rgb (uint32_t* rgb)
 {
-	// FIXME: use proper channels API wrapper
 	int r = channel_r (*rgb);
 	int g = channel_g (*rgb);
 	int b = channel_b (*rgb);
