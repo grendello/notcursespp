@@ -20,13 +20,13 @@ watch_for_keystroke ([[maybe_unused]] struct notcurses* nc, [[maybe_unused]] str
 		}
 	}
 
-	return demo_render (NotCurses::get_instance ());
+	return demo_render (NotCurses::get_instance ()) ? 0 : 1;
 }
 
 static bool
 view_video_demo (NotCurses &nc)
 {
-	Plane* ncp = nc.get_stdplane ();
+	std::unique_ptr<Plane> ncp (nc.get_stdplane ());
 	int dimy, dimx;
 	ncp->get_dim (&dimy, &dimx);
 
@@ -131,6 +131,11 @@ bool view_demo (NotCurses &nc)
 	if (!ncv->render (0, 0, 0, 0)) {
 		return false;
 	}
+
+	Cell b;
+	b.set_fg_alpha (Cell::AlphaTransparent);
+	b.set_bg_alpha (Cell::AlphaTransparent);
+	ncv2->get_plane ()->set_base (b);
 	ncv.reset ();
 	ncv2.reset ();
 

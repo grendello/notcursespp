@@ -97,36 +97,20 @@ outro_message (NotCurses &nc, int* rows, int* cols)
 		return nullptr;
 	}
 
-	if (!non->cursor_move (ybase, 0)) {
+	if (non->putc (ybase, 0, ' ') < 0 || non->putc (' ') < 0) {
 		return nullptr;
 	}
 
-	if (non->putc (' ') < 0 || non->putc (' ') < 0) {
-		return nullptr;
-	}
-
-	if (!non->cursor_move (ybase, *cols - 2)) {
-		return nullptr;
-	}
-
-	if (non->putc (' ') < 0 || non->putc (' ') < 0){
+	if (non->putc (ybase, *cols - 2, ' ') < 0 || non->putc (' ') < 0){
 		return nullptr;
 	}
 
 	// ...and now the lower corners
-	if (!non->cursor_move (*rows - 1, 0)) {
+	if (non->putc (*rows - 1, 0, ' ') < 0 || non->putc (' ') < 0) {
 		return nullptr;
 	}
 
-	if (non->putc (' ') < 0 || non->putc (' ') < 0) {
-		return nullptr;
-	}
-
-	if (!non->cursor_move (*rows - 1, *cols - 2)) {
-		return nullptr;
-	}
-
-	if (non->putc (' ') < 0 || non->putc (' ') < 0) {
+	if (non->putc (*rows - 1, *cols - 2, ' ') < 0 || non->putc (' ') < 0) {
 		return nullptr;
 	}
 

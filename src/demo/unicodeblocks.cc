@@ -22,7 +22,7 @@ constexpr int CHUNKSIZE = 32;  // show this many per line
 static bool
 fade_block (std::shared_ptr<Plane> nn, const struct timespec* subdelay)
 {
-	bool ret = nn->fadein (subdelay);
+	bool ret = nn->fadein (subdelay, demo_fader);
 	nn.reset ();
 
 	return ret;
@@ -59,10 +59,6 @@ draw_block (std::shared_ptr<Plane> nn, uint32_t blockstart)
 
 	int chunk;
 	for (chunk = 0 ; chunk < BLOCKSIZE / CHUNKSIZE ; ++chunk) {
-		if (!nn->cursor_move (chunk + 1, 1)) {
-			return false;
-		}
-
 		int z;
 		// 16 to a line
 		auto utf8arr = new char[MB_CUR_MAX * 2 + 1];
@@ -80,19 +76,18 @@ draw_block (std::shared_ptr<Plane> nn, uint32_t blockstart)
 					std::cerr << "Couldn't convert " << ch << " (" << std::hex << ch << std::dec << ") (" << w[0] << ") (" << strerror (errno) << ")" << std::endl;
 					return false;
 				}
-				utf8arr[bwc] = '\0';
+				if (wcwidth(w[0]) < 2) {
+					utf8arr[bwc++] = ' ';
+				}
+				utf8arr[bwc++] = '\0';
 			} else { // don't dump non-printing codepoints
-				strcpy (utf8arr, " ");
+				strcpy (utf8arr, "  ");
 			}
 			nn->set_fg_rgb (0xad + z * 2, 0xff, 0x2f - z * 2);
 			nn->set_bg_rgb (8 * chunk, 8 * chunk + z, 8 * chunk);
 
-			if (nn->putstr (utf8arr) < 0) {
+			if (nn->putstr (chunk + 1, z * 2 + 1, utf8arr) < 0) {
 				return false;
-			}
-
-			if (wcwidth (w[0]) < 2 || !iswprint (w[0])) {
-				nn->putc (' ');
 			}
 		}
 		delete[] utf8arr;
@@ -188,7 +183,6 @@ bool unicodeblocks_demo (NotCurses &nc)
 
 	for (sindex = 0 ; sindex < sizeof(blocks) / sizeof(*blocks) ; ++sindex) {
 		n->set_bg_rgb (0, 0, 0);
-		//ncplane_erase(n);
 
 		uint32_t blockstart = blocks[sindex].start;
 		const char* description = blocks[sindex].name;

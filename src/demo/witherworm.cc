@@ -18,16 +18,60 @@ using namespace ncpp;
 // Fill up the screen with as much crazy Unicode as we can, and then set a
 // gremlin loose, looking to brighten up the world.
 
-// FIXME throw this in there somehow
-//   ∮ E⋅da = Q,  n → ∞, ∑ f(i) = ∏ g(i),     ⎧⎡⎛┌─────┐⎞⎤⎫
-//                                            ⎪⎢⎜│a²+b³ ⎟⎥⎪
-//  ∀x∈ℝ: ⌈x⌉ = −⌊−x⌋, α ∧ ¬β = ¬(¬α ∨ β),    ⎪⎢⎜│───── ⎟⎥⎪
-//                                            ⎪⎢⎜⎷ c₈   ⎟⎥⎪
-//  ℕ ⊆ ℕ₀ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ (z̄ = ℜ(z)−ℑ(z)⋅𝑖), ⎨⎢⎜       ⎟⎥⎬
-//                                            ⎪⎢⎜ ∞     ⎟⎥⎪
-//  ⊥ < a ≠ b ≡ c ≤ d ≪ ⊤ ⇒ (⟦A⟧ ⇔ ⟪B⟫),      ⎪⎢⎜ ⎲     ⎟⎥⎪
-//                                            ⎪⎢⎜ ⎳aⁱ-bⁱ⎟⎥⎪
-//  2H₂ + O₂ ⇌ 2H₂O, R = 4.7 kΩ, ⌀ 200 µm     ⎩⎣⎝i=1    ⎠⎦⎭
+static std::shared_ptr<Plane>
+mathplane (NotCurses &nc)
+{
+  int dimx, dimy;
+  nc.get_term_dim (&dimy, &dimx);
+
+  const int HEIGHT = 9;
+  const int WIDTH = dimx;
+  auto n = std::make_shared<Plane> (HEIGHT, WIDTH, dimy - HEIGHT - 1, dimx - WIDTH - 1);
+  Cell b;
+
+  b.set_bg_alpha (Cell::AlphaTransparent);
+  b.set_fg_alpha (Cell::AlphaTransparent);
+  n->set_base (b);
+  n->release (b);
+
+  if (n) {
+  /* FIXME issue #260
+    struct ncplane* stdn = notcurses_stdplane(nc);
+    ncplane_set_bg_alpha(n, CELL_ALPHA_TRANSPARENT);
+    int snatchy = dimy - HEIGHT - 1;
+    cell c = CELL_TRIVIAL_INITIALIZER;
+    ncplane_at_yx(stdn, snatchy++, 0, &c);
+    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
+    // FIXME reenable the left parts of these strings, issue #260*/
+    //ncplane_printf_aligned(n, 0, NCALIGN_RIGHT, /*∮E⋅da=Q,n→∞,∑f(i)=∏g(i)*/"⎧⎡⎛┌─────┐⎞⎤⎫");
+    /*ncplane_at_yx(stdn, snatchy++, 0, &c);
+    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
+    ncplane_printf_aligned(n, 1, NCALIGN_RIGHT, "⎪⎢⎜│a²+b³ ⎟⎥⎪");
+    ncplane_at_yx(stdn, snatchy++, 0, &c);
+    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);*/
+    //ncplane_printf_aligned(n, 2, NCALIGN_RIGHT, /*∀x∈ℝ:⌈x⌉=−⌊−x⌋,α∧¬β=¬(¬α∨β)*/"⎪⎢⎜│───── ⎟⎥⎪");
+    /*ncplane_at_yx(stdn, snatchy++, 0, &c);
+    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
+    ncplane_printf_aligned(n, 3, NCALIGN_RIGHT, "⎪⎢⎜⎷ c₈   ⎟⎥⎪");
+    ncplane_at_yx(stdn, snatchy++, 0, &c);
+    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);*/
+    //ncplane_printf_aligned(n, 4, NCALIGN_RIGHT, /*ℕ⊆ℕ₀⊂ℤ⊂ℚ⊂ℝ⊂ℂ(z̄=ℜ(z)−ℑ(z)⋅𝑖)*/"⎨⎢⎜       ⎟⎥⎬");
+    /*ncplane_at_yx(stdn, snatchy++, 0, &c);
+    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
+    ncplane_printf_aligned(n, 5, NCALIGN_RIGHT, "⎪⎢⎜ ∞     ⎟⎥⎪");
+    ncplane_at_yx(stdn, snatchy++, 0, &c);
+    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);*/
+    //ncplane_printf_aligned(n, 6, NCALIGN_RIGHT, /*⊥<a≠b≡c≤d≪⊤⇒(⟦A⟧⇔⟪B⟫)*/"⎪⎢⎜ ⎲     ⎟⎥⎪");
+    /*ncplane_at_yx(stdn, snatchy++, 0, &c);
+    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);
+    ncplane_printf_aligned(n, 7, NCALIGN_RIGHT, "⎪⎢⎜ ⎳aⁱ-bⁱ⎟⎥⎪");
+    ncplane_at_yx(stdn, snatchy++, 0, &c);
+    ncplane_set_fg(n, cell_fchannel(&c) & CELL_BG_MASK);*/
+    //ncplane_printf_aligned(n, 8, NCALIGN_RIGHT, /*2H₂+O₂⇌2H₂O,R=4.7kΩ,⌀200µm*/"⎩⎣⎝i=1    ⎠⎦⎭");
+  }
+
+  return n;
+}
 
 // get the (up to) eight surrounding cells. they run clockwise, starting from
 // the upper left: 012
@@ -44,7 +88,7 @@ wall_p (const Plane *n, const Cell &c)
 	const char* egc = n->get_extended_gcluster (c);
 	wchar_t w;
 	if (mbtowc (&w, egc, strlen(egc)) > 0) {
-		if (w >= 0x2500 && w <= 0x257f) { // no room in the inn, little snake!
+		if (w >= 0x2500 && w <= 0x257f) { // no room in the inn, little worm!
 			return true;
 		}
 	}
@@ -54,7 +98,7 @@ wall_p (const Plane *n, const Cell &c)
 
 // the closer the coordinate is (lower distance), the more we lighten the cell
 static inline int
-lighten (Plane *n, Cell &c, int distance)
+lighten (Plane *n, Cell &c, int distance, int y, int x)
 {
 	if (c.is_wide_right ()) { // not really a character
 		return 0;
@@ -62,9 +106,10 @@ lighten (Plane *n, Cell &c, int distance)
 
 	unsigned r, g, b;
 	c.get_fg_rgb (&r, &g, &b);
-	r += rand () % ((r + 32) / (3 * distance + 1) + 1);
-	g += rand () % ((g + 32) / (3 * distance + 1) + 1);
-	b += rand () % ((b + 32) / (3 * distance + 1) + 1);
+	r += rand () % ((r + 16) / (4 * distance + 1) + 1);
+	g += rand () % ((g + 16) / (4 * distance + 1) + 1);
+	b += rand () % ((b + 16) / (4 * distance + 1) + 1);
+
 	if (r > 255) r = 255;
 	if (g > 255) g = 255;
 	if (b > 255) b = 255;
@@ -72,7 +117,7 @@ lighten (Plane *n, Cell &c, int distance)
 		return -1;
 	}
 
-	return n->putc (c);
+	return n->putc (y, x, c);
 }
 
 static void
@@ -97,93 +142,68 @@ static bool
 lightup_surrounding_cells (Plane *n, const Cell cells[], int y, int x)
 {
 	Cell c;
-	if (n->cursor_move (y - 1, x - 1)) {
-		n->duplicate (c, cells[0]);
-		lighten (n, c, 2);
-	}
+	n->duplicate (c, cells[0]);
+	lighten (n, c, 2, y - 1, x - 1);
 
-	if (n->cursor_move (y - 1, x)) {
-		n->duplicate (c, cells[1]);
-		lighten (n, c, 1);
-	}
+	n->duplicate (c, cells[1]);
+	lighten (n, c, 1, y - 1, x);
 
-	if (n->cursor_move (y - 1, x + 1)) {
-		n->duplicate (c, cells[2]);
-		lighten (n, c, 2);
-	}
+	n->duplicate (c, cells[2]);
+	lighten (n, c, 2, y - 1, x + 1);
 
-	if (n->cursor_move (y, x - 1)) {
-		n->duplicate (c, cells[7]);
-		lighten (n, c, 1);
-	}
+	n->duplicate (c, cells[7]);
+	lighten (n, c, 1, y, x - 1);
 
-	if (n->cursor_move (y, x + 1)) {
-		n->duplicate (c, cells[3]);
-		lighten (n, c, 1);
-	}
+	n->duplicate (c, cells[3]);
+	lighten (n, c, 1, y, x + 1);
 
-	if (n->cursor_move (y + 1, x - 1)) {
-		n->duplicate (c, cells[6]);
-		lighten (n, c, 2);
-	}
+	n->duplicate (c, cells[6]);
+	lighten (n, c, 2, y + 1, x - 1);
 
-	if (n->cursor_move (y + 1, x)) {
-		n->duplicate (c, cells[5]);
-		lighten (n, c, 1);
-	}
 
-	if (n->cursor_move (y + 1, x + 1)) {
-		n->duplicate (c, cells[4]);
-		lighten (n, c, 2);
-	}
+	n->duplicate (c, cells[5]);
+	lighten (n, c, 1, y + 1, x);
 
-	if (n->cursor_move (y - 2, x)) {
-		n->duplicate (c, cells[8]);
-		lighten (n, c, 2);
-	}
+	n->duplicate (c, cells[4]);
+	lighten (n, c, 2, y + 1, x + 1);
 
-	if (n->cursor_move (y + 2, x)) {
-		n->duplicate (c, cells[9]);
-		lighten (n, c, 2);
-	}
+	n->duplicate (c, cells[8]);
+	lighten (n, c, 2, y - 2, x);
 
-	if (n->cursor_move (y, x - 2)) {
-		n->duplicate (c, cells[10]);
-		lighten (n, c, 2);
-	}
+	n->duplicate (c, cells[9]);
+	lighten (n, c, 2, y + 2, x);
 
-	if (n->cursor_move (y, x + 2)) {
-		n->duplicate (c, cells[11]);
-		lighten (n, c, 2);
-	}
+	n->duplicate (c, cells[10]);
+	lighten (n, c, 2, y, x - 2);
 
-	if (n->cursor_move (y, x)) {
-		n->duplicate (c, cells[12]);
-		lighten (n, c, 0);
-	}
+	n->duplicate (c, cells[11]);
+	lighten (n, c, 2, y, x + 2);
+
+	n->duplicate (c, cells[12]);
+	lighten (n, c, 0, y, x);
 
 	n->release (c);
 	return true;
 }
 
-typedef struct snake {
+typedef struct worm {
 	Cell lightup[13];
 	int x, y;
 	int prevx, prevy;
-} snake;
+} worm;
 
 static void
-init_snake (snake* s, int dimy, int dimx)
+init_worm (worm* s, int dimy, int dimx)
 {
 	// start them in the lower 3/4 of the screen
-	s->y = (random() % (dimy * 3 / 4)) + (dimy / 4);
-	s->x = random() % dimx;
+	s->y = random () % dimy;
+	s->x = random () % dimx;
 	s->prevx = 0;
 	s->prevy = 0;
 }
 
 static bool
-snakey_top (NotCurses &nc, snake* s)
+wormy_top (NotCurses &nc, worm* s)
 {
 	Plane *n = nc.get_stdplane ();
 	surrounding_cells (n, s->lightup, s->y, s->x);
@@ -194,7 +214,7 @@ snakey_top (NotCurses &nc, snake* s)
 }
 
 static bool
-snakey (NotCurses &nc, snake* s, int dimy, int dimx)
+wormy (NotCurses &nc, worm* s, int dimy, int dimx)
 {
 	Plane *n = nc.get_stdplane ();
 	int oldy, oldx;
@@ -203,7 +223,7 @@ snakey (NotCurses &nc, snake* s, int dimy, int dimx)
 	do { // force a move
 		oldy = s->y;
 		oldx = s->x;
-		// FIXME he ought be weighted to avoid light; he's a snake after all
+		// FIXME he ought be weighted to avoid light; he's a worm after all
 		int direction = random () % 4;
 		switch (direction) {
 			case 0: --s->y; break;
@@ -213,22 +233,23 @@ snakey (NotCurses &nc, snake* s, int dimy, int dimx)
 		}
 
 		// keep him away from the sides due to width irregularities
-		if (s->x < (dimx / 4)) {
-			s->x = dimx / 4;
-		} else if (s->x >= dimx * 3 / 4) {
-			s->x = dimx * 3 / 4;
-		}
-
-		if (s->y < 0) {
-			s->y = 0;
-		} else if (s->y >= dimy) {
+		if (s->y <= 0) {
 			s->y = dimy - 1;
 		}
 
-		n->cursor_move (s->y, s->x);
-		n->at_cursor (c);
+		if(s->y >= dimy) {
+			s->y = 0;
+		}
 
-		// don't allow the snake into the summary zone (test for walls)
+		if (s->x <= 0){
+			s->x = dimx - 1;
+		}
+		if (s->x >= dimx) {
+			s->x = 0;
+		}
+
+		n->get_at (s->y, s->x, &c);
+		// don't allow the worm into the summary zone (test for walls)
 		if (wall_p (n, c)) {
 			s->x = oldx;
 			s->y = oldy;
@@ -251,29 +272,29 @@ char* util_demangle(std::string to_demangle)
     return __cxxabiv1::__cxa_demangle(to_demangle.c_str(), NULL, NULL, &status);
 }
 
-// each snake wanders around aimlessly, prohibited from entering the summary
+// each worm wanders around aimlessly, prohibited from entering the summary
 // section. it ought light up the cells around it; to do this, we keep an array
 // of 13 cells with the original colors, which we tune up for the duration of
 // our colocality (unless they're summary area walls).
 static void *
-snake_thread ([[maybe_unused]] void* vnc)
+worm_thread ([[maybe_unused]] void* vnc)
 {
 	NotCurses &nc = NotCurses::get_instance ();
 	Plane *n = nc.get_stdplane ();
 	int dimy, dimx;
 	n->get_dim (&dimy, &dimx);
 
-	int snakecount = (dimy * dimx) / 800;
-	std::vector<snake> snakes (snakecount);
-	for (int s = 0 ; s < snakecount ; ++s) {
-		init_snake (&snakes[s], dimy, dimx);
+	int wormcount = (dimy * dimx) / 800;
+	std::vector<worm> worms (wormcount);
+	for (int s = 0 ; s < wormcount ; ++s) {
+		init_worm (&worms[s], dimy, dimx);
 	}
 
-	struct timespec iterdelay = { /*.tv_sec =*/ 0, /*.tv_nsec =*/ 1000000000ul / 20, };
+	struct timespec iterdelay = { /*.tv_sec =*/ 0, /*.tv_nsec =*/ 100000000ul / 20, };
 	while (true) {
 		pthread_testcancel ();
-		for (int s = 0 ; s < snakecount ; ++s) {
-			if (!snakey_top (nc, &snakes[s])) {
+		for (int s = 0 ; s < wormcount ; ++s) {
+			if (!wormy_top (nc, &worms[s])) {
 				return nullptr;
 			}
 		}
@@ -282,8 +303,8 @@ snake_thread ([[maybe_unused]] void* vnc)
 			return nullptr;
 		}
 
-		for (int s = 0 ; s < snakecount ; ++s) {
-			if (!snakey (nc, &snakes[s], dimy, dimx)) {
+		for (int s = 0 ; s < wormcount ; ++s) {
+			if (!wormy (nc, &worms[s], dimy, dimx)) {
 				return nullptr;
 			}
 		}
@@ -343,14 +364,11 @@ message (std::shared_ptr<Plane> n, int maxy, int maxx, int num, int total, int b
 	n->set_fg_rgb (64, 128, 240);
 	n->set_bg_rgb (32, 64, 32);
 	n->styles_on (CellStyle::Italic);
-	n->cursor_move (5, 18);
-	n->printf (" bytes: %05d EGCs: %05d cols: %05d ", bytes_out, egs_out, cols_out);
-	n->cursor_move (1, 4);
-	n->printf (" %03dx%03d (%d/%d) ", maxx, maxy, num + 1, total);
-	n->cursor_move (3, 1);
+	n->printf (5, 18, " bytes: %05d EGCs: %05d cols: %05d ", bytes_out, egs_out, cols_out);
+	n->printf (1, 4, " %03dx%03d (%d/%d) ", maxx, maxy, num + 1, total);
 	n->styles_off (CellStyle::Italic);
 	n->set_fg_rgb (224, 128, 224);
-	n->putstr ("  🔥 unicode 13, resize awareness, 24b directcolor…🔥  ");
+	n->putstr (3, 1, "  🔥 unicode 13, resize awareness, 24b directcolor…🔥  ");
 	n->set_fg_rgb (255, 255, 255);
 
 	return true;
@@ -622,6 +640,7 @@ bool witherworm_demo (NotCurses &nc)
 			int cols_out = 0;
 			y = 0;
 			x = 0;
+			n->set_bg_rgb (20, 20, 20);
 			do { // we fill up the entire screen, however large, walking our strtable
 				s = strs;
 				n->set_bg_rgb (20, 20, 20);
@@ -673,6 +692,11 @@ bool witherworm_demo (NotCurses &nc)
 				}
 			} while (y < maxy && x < maxx);
 
+			std::shared_ptr<Plane> math = mathplane (nc);
+			if (!math) {
+				return false;
+			}
+
 			auto mess = std::make_shared<Plane> (7, 57, 1, 4);
 			if (!message (mess, maxy, maxx, i, sizeof(steps) / sizeof(*steps), bytes_out, egcs_out, cols_out)) {
 				return false;
@@ -695,7 +719,7 @@ bool witherworm_demo (NotCurses &nc)
 			}
 
 			pthread_t tid;
-			pthread_create (&tid, nullptr, snake_thread, &nc);
+			pthread_create (&tid, nullptr, worm_thread, &nc);
 			do {
 				struct timespec left, cur;
 				clock_gettime (CLOCK_MONOTONIC, &cur);

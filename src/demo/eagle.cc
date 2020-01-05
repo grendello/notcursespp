@@ -139,11 +139,9 @@ draw_eagle (std::shared_ptr<Plane> n, const char* sprite)
 
 	size_t s;
 	int sbytes;
-	n->cursor_move (0, 0);
 	for (s = 0 ; sprite[s] ; ++s) {
 		switch (sprite[s]) {
 			case '0':
-				n->cursor_move ((s + 1) / 16, (s + 1) % 16);
 				break;
 
 			case '1':
@@ -160,7 +158,7 @@ draw_eagle (std::shared_ptr<Plane> n, const char* sprite)
 		}
 
 		if (sprite[s] != '0') {
-			if (n->putc ("\u2588", &sbytes) != 1) {
+			if (n->putc (s / 16, s % 16, "\u2588", &sbytes) != 1) {
 				return false;
 			}
 		}

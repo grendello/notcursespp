@@ -28,7 +28,7 @@ static int democount;
 static demoresult* results;
 static std::atomic_bool interrupted (false);
 
-static constexpr char DEFAULT_DEMO[] = "ixetclubgswvpo";
+static constexpr char DEFAULT_DEMO[] = "ixetcgswubvlpo";
 static char datadir[PATH_MAX] = NOTCURSES_DATA_DIR;
 
 void interrupt_demo (void)
@@ -91,7 +91,7 @@ usage (const char* exe, int status)
 	out << " -d: delay multiplier (float)" << std::endl;
 	out << " -f: render to file in addition to stdout" << std::endl;
 	out << " -c: constant PRNG seed, useful for benchmarking" << std::endl;
-	out << "all demos are run if no specification is provided" << std::endl;
+	out << "if no specification is provided, run " << DEFAULT_DEMO << std::endl;
 	out << " b: run box" << std::endl;
 	out << " c: run chunli" << std::endl;
 	out << " e: run eagles" << std::endl;
@@ -119,9 +119,6 @@ intro (NotCurses &nc)
 	Cell c;
 	c.set_bg_rgb (0x20, 0x20, 0x20);
 	ncp->set_base (c);
-	if (!ncp->cursor_move (0, 0)) {
-		return false;
-	}
 
 	int x, y, rows, cols;
 	ncp->get_dim (&rows, &cols);
@@ -129,6 +126,11 @@ intro (NotCurses &nc)
 	Cell ul, ur;
 	Cell ll, lr;
 	Cell hl, vl;
+
+	if (!ncp->cursor_move (0, 0)) {
+		return false;
+	}
+
 	if (!ncp->load_rounded_box (CellStyle::Bold, 0, ul, ur, ll, lr, hl, vl)) {
 		return false;
 	}
@@ -153,11 +155,7 @@ intro (NotCurses &nc)
 	for (y = 5 ; y < rows - 6 ; ++y) {
 		c.set_bg_rgb (0, y * ys, 0);
 		for (x = 5 ; x < cols - 6 ; ++x) {
-			if (!ncp->cursor_move (y, x)) {
-				return false;
-			}
-
-			if (ncp->putc (c) <= 0) {
+			if (ncp->putc (y, x, c) <= 0) {
 				return false;
 			}
 		}
@@ -198,7 +196,7 @@ intro (NotCurses &nc)
 
 	ncp->styles_off (CellStyle::Italic);
 	ncp->set_fg_rgb (0xff, 0xff, 0xff);
-	if (ncp->putstr (rows - 3, NCAlign::Center, "press q at any time to quit") < 0) {
+	if (ncp->printf (rows - 3, NCAlign::Center, "notcurses %s. press 'q' to quit.", nc.version ()) < 0) {
 		return false;
 	}
 	ncp->styles_off (CellStyle::Bold);
@@ -481,17 +479,21 @@ int real_main (int argc, char** argv)
 	}
 
 	failed = false;
+	printf ("\n");
+	printf ("       total│frames│output(B)│ rendering│%%r│%6s│\n", "FPS");
+	printf ("══╤═╤═══════╪══════╪═════════╪══════════╪══╪══════╡\n");
 	for (size_t i = 0 ; i < strlen (demos) ; ++i) {
 		char totalbuf[BPREFIXSTRLEN + 1];
 		bprefix (results[i].stats.render_bytes, 1, totalbuf, 0);
 		double avg = results[i].stats.render_ns / (double)results[i].stats.renders;
-		printf ("%2zu|%c|%2lu.%03lus|%4luf|%*sB|%8juµs|%6.1f FPS|%s\n", i,
+		printf ("%2zu│%c│%2lu.%03lus│%6lu│%*s│%8juµs│%2ld│%6.1f│%s\n", i,
 				results[i].selector,
 				results[i].timens / GIG,
 				(results[i].timens % GIG) / 1000000,
 				results[i].stats.renders,
 				BPREFIXSTRLEN, totalbuf,
 				results[i].stats.render_ns / 1000,
+				results[i].timens ? results[i].stats.render_ns * 100 / results[i].timens : 0,
 				GIG / avg,
 				results[i].failed ? "***FAILED" : results[i].stats.renders ? ""  : "***NOT RUN");
 		if (results[i].failed) {
@@ -502,7 +504,7 @@ int real_main (int argc, char** argv)
 	delete[] results;
 
 	if (failed) {
-		std::cerr << " Error running demo. Did you need provide -p?" << std::endl;
+		std::cerr << " Error running demo. Is \"" << datadir << "\" the correct data path?" << std::endl;
 	}
 	return failed ? EXIT_FAILURE : EXIT_SUCCESS;
 

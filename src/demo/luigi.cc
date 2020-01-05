@@ -132,7 +132,6 @@ draw_luigi (std::shared_ptr<Plane> n, const char* sprite)
 	for (s = 0 ; sprite[s] ; ++s) {
 		switch (sprite[s]) {
 			case '0':
-				n->cursor_move ((s + 1) / 16, (s + 1) % 16);
 				break;
 
 			case '1':
@@ -149,7 +148,7 @@ draw_luigi (std::shared_ptr<Plane> n, const char* sprite)
 		}
 
 		if (sprite[s] != '0') {
-			if (n->putc ("\u2588", &sbytes) != 1) {
+			if (n->putc (s / 16, s % 16, "\u2588", &sbytes) != 1) {
 				return false;
 			}
 		}

@@ -24,9 +24,9 @@ static int
 perframecb ([[maybe_unused]] struct notcurses *_nc, [[maybe_unused]] ncvisual* ncv, [[maybe_unused]] void *vnewplane)
 {
 	NotCurses &nc = NotCurses::get_instance ();
-	static int startr = 0x80;
+	static int startr = 0xaf;
 	static int startg = 0xff;
-	static int startb = 0x80;
+	static int startb = 0xd4;
 	static int frameno = 0;
 	int dimx, dimy, y;
 	std::shared_ptr<Plane> n;
@@ -48,7 +48,6 @@ perframecb ([[maybe_unused]] struct notcurses *_nc, [[maybe_unused]] ncvisual* n
 	c.set_fg_alpha (Cell::AlphaTransparent);
 	c.set_bg_alpha (Cell::AlphaTransparent);
 	n->set_base (c);
-	n->set_fg_alpha (Cell::AlphaBlend);
 	n->set_bg_alpha (Cell::AlphaBlend);
 
 	// fg/bg rgbs are set within loop
@@ -81,7 +80,7 @@ perframecb ([[maybe_unused]] struct notcurses *_nc, [[maybe_unused]] ncvisual* n
 			}
 
 			for (size_t l = 0 ; l < sizeof(leg) / sizeof(*leg) ; ++l, ++y) {
-				if (!n->set_fg_rgb (r - 0xc * l, g - 0xc * l, b - 0xc * l)) {
+				if (!n->set_fg_rgb (r - 0xa * l, g - 0xa * l, b - 0xa * l)) {
 					return -1;
 				}
 

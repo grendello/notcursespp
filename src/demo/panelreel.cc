@@ -1,6 +1,7 @@
 #include <config.hh>
 
 #include <cerrno>
+#include <fcntl.h>
 #include <unistd.h>
 #include <cstdlib>
 #include <cassert>
@@ -46,7 +47,7 @@ kill_tablet (tabletctx** tctx)
 			std::cerr << "Warning: error sending pthread_cancel (" << strerror (errno) << ")" << std::endl;
 		}
 
-		if (pthread_join(t->tid, nullptr)) {
+		if (pthread_join (t->tid, nullptr)) {
 			std::cerr << "Warning: error joining pthread (" << strerror (errno) << ")" << std::endl;
 		}
 
@@ -98,15 +99,18 @@ tabletup (Plane *w, int begx, int begy, int maxx, int maxy, tabletctx* tctx, int
 	/*fprintf(stderr, "-OFFSET BY %d (%d->%d)\n", maxy - begy - tctx->lines,
 	  maxy, maxy - (maxy - begy - tctx->lines));*/
 	for (y = maxy ; y >= begy ; --y, rgb += 16) {
-		w->cursor_move (y, begx);
 		snprintf (cchbuf, sizeof(cchbuf) / sizeof(*cchbuf), "%x", idx % 16);
 		w->load (c, cchbuf);
-		c.set_fg_rgb ((rgb >> 16u) % 0xffu, (rgb >> 8u) % 0xffu, rgb % 0xffu);
+		if (!c.set_fg_rgb ((rgb >> 16u) % 0xffu, (rgb >> 8u) % 0xffu, rgb % 0xffu)) {
+			return -1;
+		}
 
 		int x;
 		for (x = begx ; x <= maxx ; ++x) {
 			// lower-right corner always returns an error unless scrollok() is used
-			w->putc (c);
+			if (w->putc (y, x, c) <= 0) {
+				return -1;
+			}
 		}
 		w->release (c);
 		if (--idx == 0) {
@@ -130,15 +134,18 @@ tabletdown (Plane *w, int begx, int begy, int maxx, int maxy, tabletctx* tctx, u
 			break;
 		}
 
-		w->cursor_move (y, begx);
 		snprintf (cchbuf, sizeof(cchbuf) / sizeof(*cchbuf), "%x", y % 16);
 		w->load (c, cchbuf);
-		c.set_fg_rgb ((rgb >> 16u) % 0xffu, (rgb >> 8u) % 0xffu, rgb % 0xffu);
+		if (!c.set_fg_rgb ((rgb >> 16u) % 0xffu, (rgb >> 8u) % 0xffu, rgb % 0xffu)) {
+			return -1;
+		}
 
 		int x;
 		for (x = begx ; x <= maxx ; ++x) {
 			// lower-right corner always returns an error unless scrollok() is used
-			w->putc (c);
+			if (w->putc (y, x, c) <= 0) {
+				return -1;
+			}
 		}
 		w->release (c);
 	}
@@ -150,7 +157,6 @@ static int
 tabletdraw (struct tablet* _t, int begx, int begy, int maxx, int maxy, bool cliptop)
 {
 	Tablet *t = Tablet::map_tablet (_t);
-	bool err = false;
 	Plane *p = t->get_plane ();
 	tabletctx* tctx = t->get_userptr<tabletctx> ();
 
@@ -173,16 +179,18 @@ tabletdraw (struct tablet* _t, int begx, int begy, int maxx, int maxy, bool clip
 				summaryy = ll;
 			}
 		}
-		err |= !p->cursor_move (summaryy, begx);
+
 		p->styles_on (CellStyle::Bold);
-		p->printf ("[#%u %d line%s %u/%u] ", tctx->id, tctx->lines, tctx->lines == 1 ? "" : "s", begy, maxy);
+		if (p->printf (summaryy, begx, "[#%u %d line%s %u/%u] ", tctx->id, tctx->lines, tctx->lines == 1 ? "" : "s", begy, maxy) < 0) {
+			pthread_mutex_unlock (&tctx->lock);
+			return -1;
+		}
 		p->styles_off (CellStyle::Bold);
 	}
 	/*fprintf(stderr, "  \\--> callback for %d, %d lines (%d/%d -> %d/%d) dir: %s wrote: %d ret: %d\n", tctx->id,
 	  tctx->lines, begy, begx, maxy, maxx,
 	  cliptop ? "up" : "down", ll, err);*/
 	pthread_mutex_unlock (&tctx->lock);
-	assert (!err);
 
 	return ll;
 }
@@ -196,7 +204,7 @@ tablet_thread (void* vtabletctx)
 	auto tctx = static_cast<tabletctx*>(vtabletctx);
 	while (true) {
 		struct timespec ts;
-		ts.tv_sec = random () % 3 + MINSECONDS;
+		ts.tv_sec = random () % 2 + MINSECONDS;
 		ts.tv_nsec = random () % 1000000000;
 		nanosleep (&ts, nullptr);
 		int action = random () % 5;
@@ -294,8 +302,17 @@ handle_input (NotCurses &nc, std::shared_ptr<PanelReel> pr, int efd, const struc
 	return key;
 }
 
+static int
+close_pipes (int* pipes)
+{
+	if (close (pipes[0]) | close (pipes[1])) { // intentional, avoid short-circuiting
+		return -1;
+	}
+	return 0;
+}
+
 static std::shared_ptr<PanelReel>
-panelreel_demo_core (NotCurses &nc, int efd, tabletctx** tctxs)
+panelreel_demo_core (NotCurses &nc, int efdr, int efdw, tabletctx** tctxs)
 {
 	bool done = false;
 	int x = 8, y = 4;
@@ -329,7 +346,7 @@ panelreel_demo_core (NotCurses &nc, int efd, tabletctx** tctxs)
 	}
 
 	Plane* w = nc.get_stdplane ();
-	std::shared_ptr<PanelReel> pr (w->panelreel_create (&popts, efd));
+	std::shared_ptr<PanelReel> pr (w->panelreel_create (&popts, efdw));
 	if (!pr) {
 		std::cerr << "Error creating panelreel" << std::endl;
 		return nullptr;
@@ -340,18 +357,20 @@ panelreel_demo_core (NotCurses &nc, int efd, tabletctx** tctxs)
 	w->styles_on (CellStyle::Bold | CellStyle::Italic);
 	w->set_fg_rgb (58, 150, 221);
 	w->set_bg_default ();
-	w->cursor_move (1, 1);
-	w->printf ("a, b, c create tablets, DEL deletes.");
+	w->printf (1, 1, "a, b, c create tablets, DEL deletes.");
+
 	w->styles_off (CellStyle::Bold | CellStyle::Italic);
 	// FIXME clrtoeol();
 
-	unsigned id = 0;
 	struct timespec deadline;
 	clock_gettime (CLOCK_MONOTONIC, &deadline);
 	ns_to_timespec ((timespec_to_ns (&demodelay) * 5) + timespec_to_ns (&deadline), &deadline);
 
+	unsigned id = 0;
 	struct tabletctx* newtablet;
-	while (id < INITIAL_TABLET_COUNT) {
+	int dimy = w->get_dim_y ();
+	// Make an initial number of tablets suitable for the screen's height
+	while (id < dimy / 8u) {
 		newtablet = new_tabletctx (pr, &id);
 		if (newtablet == nullptr) {
 			return nullptr;
@@ -364,14 +383,13 @@ panelreel_demo_core (NotCurses &nc, int efd, tabletctx** tctxs)
 		w->styles_set (static_cast<CellStyle>(0));
 		w->set_fg_rgb (197, 15, 31);
 		int count = pr->get_tabletcount ();
-		w->cursor_move (2, 2);
 		w->styles_on (CellStyle::Bold);
-		w->printf ("%d tablet%s", count, count == 1 ? "" : "s");
+		w->printf (2, 2, "%d tablet%s", count, count == 1 ? "" : "s");
 		w->styles_off (CellStyle::Bold);
 		// FIXME wclrtoeol(w);
 		w->set_fg_rgb (0, 55, 218);
 		wchar_t rw;
-		if ((rw = handle_input (nc, pr, efd, &deadline)) <= 0) {
+		if ((rw = handle_input (nc, pr, efdr, &deadline)) <= 0) {
 			done = true;
 			break;
 		}
@@ -379,7 +397,6 @@ panelreel_demo_core (NotCurses &nc, int efd, tabletctx** tctxs)
 		// FIXME clrtoeol();
 		newtablet = nullptr;
 		switch (rw) {
-			case 'p': sleep (60); exit (EXIT_FAILURE); break;
 			case 'a': newtablet = new_tabletctx (pr, &id); break;
 			case 'b': newtablet = new_tabletctx (pr, &id); break;
 			case 'c': newtablet = new_tabletctx (pr, &id); break;
@@ -394,8 +411,7 @@ panelreel_demo_core (NotCurses &nc, int efd, tabletctx** tctxs)
 			case NCKey::Down: pr->next (); break;
 			case NCKey::Del: kill_active_tablet (pr, tctxs); break;
 			default:
-				w->cursor_move (3, 2);
-				w->printf ("Unknown keycode (0x%x)\n", rw);
+				w->printf (3, 2, "Unknown keycode (0x%x)\n", rw);
 		}
 
 		if (newtablet) {
@@ -417,18 +433,16 @@ panelreel_demo_core (NotCurses &nc, int efd, tabletctx** tctxs)
 bool panelreel_demo (NotCurses &nc)
 {
 	tabletctx* tctxs = nullptr;
-	/* FIXME there's no eventfd on FreeBSD, so until we do a self-pipe
-	 * trick here or something, just pass -1. it means higher latency
-	 * on our keyboard events in this demo. oh well.
-	 int efd = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK);
-	 if(efd < 0){
-	 fprintf(stderr, "Error creating eventfd (%s)\n", strerror(errno));
-	 return -1;
-	 }*/
-	int efd = -1;
+	int pipes[2];
+	// freebsd doesn't have eventfd :/
+	if (pipe2 (pipes, O_CLOEXEC | O_NONBLOCK)) {
+		std::cerr << "Error creating pipe " << strerror (errno) << std::endl;
+		return false;
+	}
+
 	std::shared_ptr<PanelReel> pr;
-	if ((pr = panelreel_demo_core (nc, efd, &tctxs)) == nullptr) {
-		close (efd);
+	if ((pr = panelreel_demo_core (nc, pipes[0], pipes[1], &tctxs)) == nullptr) {
+		close_pipes (pipes);
 		return false;
 	}
 
@@ -436,13 +450,12 @@ bool panelreel_demo (NotCurses &nc)
 		kill_tablet (&tctxs);
 	}
 
-	close(efd);
+	close_pipes (pipes);
 	if (!pr->destroy ()) {
 		std::cerr << "Error destroying panelreel" << std::endl;
 		return false;
 	}
 
-	close(efd);
 	if (!demo_render (nc)) {
 		return false;
 	}

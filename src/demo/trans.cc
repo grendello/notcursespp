@@ -58,7 +58,7 @@ legend (NotCurses &nc, const char* msg)
 }
 
 static bool
-slideitslideit (NotCurses &nc, std::shared_ptr<Plane> n, uint64_t deadline, int *direction)
+slideitslideit (NotCurses &nc, std::shared_ptr<Plane> n, uint64_t deadline, int* vely, int* velx)
 {
 	int dimy, dimx;
 	int yoff, xoff;
@@ -68,7 +68,7 @@ slideitslideit (NotCurses &nc, std::shared_ptr<Plane> n, uint64_t deadline, int 
 	n->get_dim (&ny, &nx);
 	n->get_yx (&yoff, &xoff);
 
-	struct timespec iterdelay = { /*.tv_sec =*/ 0, /*.tv_nsec =*/ 50000000, };
+	struct timespec iterdelay = { /*.tv_sec =*/ 0, /*.tv_nsec =*/ 25000000, };
 	struct timespec cur;
 
 	do{
@@ -76,43 +76,22 @@ slideitslideit (NotCurses &nc, std::shared_ptr<Plane> n, uint64_t deadline, int 
 			return false;
 		}
 
-		switch (*direction) {
-			case 0: --yoff; --xoff; break;
-			case 1: --yoff; ++xoff; break;
-			case 2: ++yoff; ++xoff; break;
-			case 3: ++yoff; --xoff; break;
+		yoff += *vely;
+		xoff += *velx;
+		if (xoff <= 0) {
+			xoff = 0;
+			*velx = -*velx;
+		} else if (xoff >= dimx - nx) {
+			xoff = dimx - nx - 1;
+			*velx = -*velx;
 		}
 
-		if (xoff == 0) {
-			++xoff;
-			if (*direction == 0) {
-				*direction = 1;
-			} else if (*direction == 3) {
-				*direction = 2;
-			}
-		} else if (xoff == dimx - nx) {
-			--xoff;
-			if (*direction == 1) {
-				*direction = 0;
-			} else if (*direction == 2) {
-				*direction = 3;
-			}
-		}
-
-		if (yoff == 0) {
-			++yoff;
-			if (*direction == 0) {
-				*direction = 3;
-			} else if (*direction == 1) {
-				*direction = 2;
-			}
-		} else if (yoff == dimy - ny) {
-			--yoff;
-			if (*direction == 2) {
-				*direction = 1;
-			} else if (*direction == 3) {
-				*direction = 0;
-			}
+		if (yoff <= 0) {
+			yoff = 0;
+			*vely = -*vely;
+		} else if (yoff >= dimy - ny) {
+			yoff = dimy - ny - 1;
+			*vely = -*vely;
 		}
 		n->move (yoff, xoff);
 		nanosleep (&iterdelay, nullptr);
@@ -150,10 +129,11 @@ slidepanel (NotCurses &nc)
 	clock_gettime (CLOCK_MONOTONIC, &cur);
 
 	uint64_t deadlinens = timespec_to_ns (&cur) + DELAYSCALE * timespec_to_ns (&demodelay);
-	int direction = random () % 4;
+	int velx = random () % 4 + 1;
+	int vely = random () % 4 + 1;
 
 	std::shared_ptr<Plane> l = legend (nc, "default background, all opaque, whitespace glyph");
-	if (!slideitslideit (nc, n, deadlinens, &direction)) {
+	if (!slideitslideit (nc, n, deadlinens, &vely, &velx)) {
 		return false;
 	}
 	l.reset ();
@@ -163,7 +143,7 @@ slidepanel (NotCurses &nc)
 	clock_gettime (CLOCK_MONOTONIC, &cur);
 	deadlinens = timespec_to_ns (&cur) + DELAYSCALE * timespec_to_ns (&demodelay);
 	l = legend (nc, "default background, all opaque, no glyph");
-	if (!slideitslideit (nc, n, deadlinens, &direction)) {
+	if (!slideitslideit (nc, n, deadlinens, &vely, &velx)) {
 		return false;
 	}
 	l.reset ();
@@ -176,7 +156,7 @@ slidepanel (NotCurses &nc)
 	clock_gettime (CLOCK_MONOTONIC, &cur);
 	deadlinens = timespec_to_ns (&cur) + DELAYSCALE * timespec_to_ns (&demodelay);
 	l = legend(nc, "default background, fg transparent, no glyph");
-	if (!slideitslideit (nc, n, deadlinens, &direction)) {
+	if (!slideitslideit (nc, n, deadlinens, &vely, &velx)) {
 		return false;
 	}
 	l.reset ();
@@ -189,7 +169,7 @@ slidepanel (NotCurses &nc)
 	clock_gettime (CLOCK_MONOTONIC, &cur);
 	l = legend (nc, "default background, fg blended, no glyph");
 	deadlinens = timespec_to_ns (&cur) + DELAYSCALE * timespec_to_ns (&demodelay);
-	if (!slideitslideit (nc, n, deadlinens, &direction)) {
+	if (!slideitslideit (nc, n, deadlinens, &vely, &velx)) {
 		return false;
 	}
 	l.reset ();
@@ -202,7 +182,7 @@ slidepanel (NotCurses &nc)
 	clock_gettime (CLOCK_MONOTONIC, &cur);
 	l = legend (nc, "default background, fg colored opaque, no glyph");
 	deadlinens = timespec_to_ns (&cur) + DELAYSCALE * timespec_to_ns (&demodelay);
-	if (!slideitslideit (nc, n, deadlinens, &direction)) {
+	if (!slideitslideit (nc, n, deadlinens, &vely, &velx)) {
 		return false;
 	}
 	l.reset ();
@@ -218,7 +198,7 @@ slidepanel (NotCurses &nc)
 	clock_gettime (CLOCK_MONOTONIC, &cur);
 	l = legend (nc, "default colors, fg transparent, print glyph");
 	deadlinens = timespec_to_ns (&cur) + DELAYSCALE * timespec_to_ns (&demodelay);
-	if (!slideitslideit (nc, n, deadlinens, &direction)) {
+	if (!slideitslideit (nc, n, deadlinens, &vely, &velx)) {
 		return false;
 	}
 	l.reset ();
@@ -232,7 +212,7 @@ slidepanel (NotCurses &nc)
 	clock_gettime (CLOCK_MONOTONIC, &cur);
 	l = legend (nc, "all transparent, print glyph");
 	deadlinens = timespec_to_ns (&cur) + DELAYSCALE * timespec_to_ns (&demodelay);
-	if (!slideitslideit (nc, n, deadlinens, &direction)) {
+	if (!slideitslideit (nc, n, deadlinens, &vely, &velx)) {
 		return false;
 	}
 	l.reset ();
@@ -248,7 +228,7 @@ slidepanel (NotCurses &nc)
 	clock_gettime (CLOCK_MONOTONIC, &cur);
 	l = legend (nc, "all blended, print glyph");
 	deadlinens = timespec_to_ns (&cur) + DELAYSCALE * timespec_to_ns (&demodelay);
-	if (!slideitslideit (nc, n, deadlinens, &direction)) {
+	if (!slideitslideit (nc, n, deadlinens, &vely, &velx)) {
 		return false;
 	}
 	l.reset ();
