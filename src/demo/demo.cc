@@ -408,7 +408,7 @@ handle_opts (int argc, char** argv, notcurses_options* opts, bool *use_hud)
 }
 
 // just fucking around...for now
-int real_main (int argc, char** argv)
+int main (int argc, char** argv)
 {
 	NotCurses &nc = NotCurses::get_instance ();
 	notcurses_options nopts;
@@ -520,9 +520,4 @@ int real_main (int argc, char** argv)
 	}
 
 	return EXIT_FAILURE;
-}
-
-int main (int argc, char **argv)
-{
-	return real_main (argc, argv);
 }
