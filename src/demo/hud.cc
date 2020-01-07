@@ -17,6 +17,8 @@ static int hud_grab_y = -1;
 static int hud_pos_x;
 static int hud_pos_y;
 
+// how many columns for runtime?
+constexpr int NSLEN = 9;
 constexpr int HUD_ROWS = 3;
 constexpr int HUD_COLS = 30;
 
@@ -24,6 +26,7 @@ typedef struct elem {
 	char* name;
 	uint64_t startns;
 	uint64_t totalns;
+	unsigned frames;
 	struct elem* next;
 } elem;
 
@@ -137,6 +140,7 @@ bool hud_completion_notify (const demoresult* result)
 {
 	if (running) {
 		running->totalns = result->timens;
+		running->frames = result->stats.renders;
 	}
 	return true;
 }
@@ -172,11 +176,13 @@ bool hud_schedule (const char* demoname)
 	}
 
 	elem* e = elems;
-	int nslen = 14;
-	int plen = HUD_COLS - 4 - nslen;
+	int plen = HUD_COLS - 4 - NSLEN;
 	while (e) {
 		hook = &e->next;
-		if (!hud->printf (line, 0, "%*luns %*.*s", nslen, e->totalns, plen, plen, e->name)) {
+		if (hud->printf (line, 0, "%-5d %*ju.%02jus %-*.*s", e->frames,
+						 NSLEN - 3, e->totalns / GIG,
+						 (e->totalns % GIG) / (GIG / 100),
+						 plen, plen, e->name) < 0) {
 			return false;
 		}
 		++line;
@@ -187,12 +193,16 @@ bool hud_schedule (const char* demoname)
 	cure->name = strdup(demoname);
 	cure->next = nullptr;
 	cure->totalns = 0;
+	cure->frames = 0;
 
 	struct timespec cur;
 	clock_gettime (CLOCK_MONOTONIC, &cur);
 	cure->startns = timespec_to_ns (&cur);
 	running = cure;
-	if (!hud->printf (line, 0, "%*luns %-*.*s", nslen, cure->totalns, plen, plen, cure->name)) {
+	if (hud->printf (line, 0, "%-5d %*ju.%02jus %-*.*s", cure->frames,
+					 NSLEN - 3, cure->totalns / GIG,
+					 (cure->totalns % GIG) / (GIG / 100),
+					 plen, plen, cure->name) < 0) {
 		return false;
 	}
 
@@ -202,15 +212,17 @@ bool hud_schedule (const char* demoname)
 bool demo_render (NotCurses &nc)
 {
 	if (hud != nullptr) {
-		int nslen = 14;
-		int plen = HUD_COLS - 4 - nslen;
+		int plen = HUD_COLS - 4 - NSLEN;
 		hud->move_top ();
 
 		struct timespec ts;
 		clock_gettime (CLOCK_MONOTONIC, &ts);
-		if (!hud->printf (HUD_ROWS - 1, 0, "%*luns %-*.*s", nslen,
-						  timespec_to_ns(&ts) - running->startns,
-						  plen, plen, running->name)) {
+		uint64_t ns = timespec_to_ns(&ts) - running->startns;
+		++running->frames;
+		if (hud->printf (HUD_ROWS - 1, 0, "%-5d %*ju.%02jus %-*.*s",
+						 running->frames,
+						 NSLEN - 3, ns / GIG, (ns % GIG) / (GIG / 100),
+						 plen, plen, running->name) < 0) {
 			return false;
 		}
 	}

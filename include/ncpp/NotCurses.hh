@@ -12,6 +12,7 @@
 
 #include "CellStyle.hh"
 #include "NCKey.hh"
+#include "NCLogLevel.hh"
 #include "Plane.hh"
 #include "_helpers.hh"
 
