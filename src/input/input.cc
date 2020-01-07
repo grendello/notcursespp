@@ -164,11 +164,14 @@ int main (void)
 		return EXIT_FAILURE;;
 	}
 
+	if (!nc->mouse_enable ()) {
+		return EXIT_FAILURE;
+	}
+
 	Plane* n = nc->get_stdplane ();
 	nc->get_term_dim (&dimy, &dimx);
 	n->set_fg (0);
 	n->set_bg (0xbb64bb);
-	n->styles_set (CellStyle::Underline);
 	if (n->putstr (0, NCAlign::Center, "mash keys, yo. give that mouse some waggle! ctrl+d exits.") <= 0) {
 		return EXIT_FAILURE;
 	}
@@ -180,9 +183,6 @@ int main (void)
 	int y = 2;
 	std::deque<char32_t> cells;
 	char32_t r;
-	if (!nc->mouse_enable ()) {
-		return EXIT_FAILURE;
-	}
 
 	ncinput ni;
 	while (errno = 0, (r = nc->getc (true, &ni)) < INVALID_CHAR) {

@@ -20,9 +20,11 @@ constexpr int BLOCKSIZE = 512; // show this many per page
 constexpr int CHUNKSIZE = 32;  // show this many per line
 
 static bool
-fade_block (std::shared_ptr<Plane> nn, const struct timespec* subdelay)
+fade_block (NotCurses &nc, std::shared_ptr<Plane> nn, const struct timespec* subdelay)
 {
-	bool ret = nn->fadein (subdelay, demo_fader);
+	// bool ret = nn->fadein (subdelay, demo_fader);
+	bool ret = nc.render ();
+	nanosleep (subdelay, nullptr);
 	nn.reset ();
 
 	return ret;
@@ -31,6 +33,9 @@ fade_block (std::shared_ptr<Plane> nn, const struct timespec* subdelay)
 static bool
 draw_block (std::shared_ptr<Plane> nn, uint32_t blockstart)
 {
+	int dimx, dimy;
+	nn->get_dim (&dimy, &dimx);
+
 	Cell ul, ur;
 	Cell ll, lr;
 	Cell hl, vl;
@@ -49,8 +54,7 @@ draw_block (std::shared_ptr<Plane> nn, uint32_t blockstart)
 	hl.set_bg_rgb (0, 0, 0);
 	vl.set_bg_rgb (0, 0, 0);
 
-	int dimx, dimy;
-	nn->get_dim (&dimy, &dimx);
+	nn->cursor_move (0, 0);
 	if (!nn->box_sized (ul, ur, ll, lr, hl, vl, dimy, dimx, 0)) {
 		return -false;
 	}
@@ -60,12 +64,12 @@ draw_block (std::shared_ptr<Plane> nn, uint32_t blockstart)
 	int chunk;
 	for (chunk = 0 ; chunk < BLOCKSIZE / CHUNKSIZE ; ++chunk) {
 		int z;
-		// 16 to a line
+
 		auto utf8arr = new char[MB_CUR_MAX * 2 + 1];
 		for (z = 0 ; z < CHUNKSIZE ; ++z) {
-			wchar_t w[3] = { static_cast<wchar_t>(blockstart) + chunk * CHUNKSIZE + z, L'\u200e', L'\0' };
+			wchar_t w[2] = { static_cast<wchar_t>(blockstart) + chunk * CHUNKSIZE + z, L'\0' };
 
-			if (wcswidth (w, 3) >= 1 && iswprint (w[0])) {
+			if (wcswidth (w, sizeof(w) / sizeof(*w)) >= 1 && iswgraph (w[0])) {
 				mbstate_t ps;
 				memset (&ps, 0, sizeof(ps));
 
@@ -84,7 +88,7 @@ draw_block (std::shared_ptr<Plane> nn, uint32_t blockstart)
 				strcpy (utf8arr, "  ");
 			}
 			nn->set_fg_rgb (0xad + z * 2, 0xff, 0x2f - z * 2);
-			nn->set_bg_rgb (8 * chunk, 8 * chunk + z, 8 * chunk);
+			nn->set_bg_rgb (8 * chunk, 8 * chunk, 8 * chunk);
 
 			if (nn->putstr (chunk + 1, z * 2 + 1, utf8arr) < 0) {
 				return false;
@@ -218,7 +222,7 @@ bool unicodeblocks_demo (NotCurses &nc)
 			return false;
 		}
 
-		if (!fade_block (nn, &subdelay)) { // destroys nn
+		if (!fade_block (nc, nn, &subdelay)) { // destroys nn
 			return false;
 		}
 
