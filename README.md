@@ -1,4 +1,4 @@
-**WARNING: WORK IN PROGRESS**
+PR to merge the binding upstream: https://github.com/dankamongmen/notcurses/pull/265
 
 Introduction
 ============
